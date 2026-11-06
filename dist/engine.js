@@ -11,7 +11,11 @@ export function birthInstant(date,time,offset){
  return new Date(raw.getTime()-o*3600000);
 }
 export function calculate(input,A){
- const date=birthInstant(input.date,input.time,input.offset),lat=Number(input.lat),lon=Number(input.lon);
+ return chartAt(birthInstant(input.date,input.time,input.offset),input.lat,input.lon,A);
+}
+export function chartAt(date,latitude,longitude,A){
+ const lat=Number(latitude),lon=Number(longitude);
+ if(!(date instanceof Date)||!Number.isFinite(date.getTime())||date.getUTCFullYear()<1899||date.getUTCFullYear()>2101)throw Error('Unsupported chart date.');
  if(!Number.isFinite(lat)||!Number.isFinite(lon)||Math.abs(lat)>65||Math.abs(lon)>180)throw Error('Enter latitude between −65 and 65, and longitude between −180 and 180.');
  const jd=date.getTime()/86400000+2440587.5,T=(jd-2451545)/36525;
  // Approximate Lahiri precession, intentionally marked unvalidated for production.

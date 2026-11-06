@@ -1,44 +1,57 @@
 # Vedik / Dr Strange
 
-A privacy-first, responsive Vedic astrology beta with a North Indian SVG kundali and plain-language, rule-ranked interpretations. No API key, server or package installation needed.
+North Indian kundali plus a Tajika-based 12-month forecast: five ranked headlines first, then one good development and one caution for each month. Direct English, without astrological terminology in prediction cards.
 
 ## Run
 
-- `npm run dev` opens a static server on port 3000.
-- `npm test` runs calculation and ranking checks with Node 20+.
-- Deploy `dist/` to any static host. There is no build step.
+`npm run dev` serves `dist/` on port 3000. `npm test` runs the Node test suite. Node 20+ is sufficient, with no dependencies or API keys. Deploy `dist/` to any static host; no build step is required.
 
-## What works
+## Forecast calculations
 
-Birth date/time, preset Indian cities, custom coordinates and historical UTC offset input. Actual geocentric planetary calculations, approximate Lahiri adjustment, whole-sign houses, mean Rahu/Ketu, Moon nakshatra/pada. Fixed-house North Indian chart with sign numbers, keyboard-accessible house selection, placement table and SVG download. Category-filtered interpretations ranked by matched rules. No birth details stored or transmitted.
+- Sidereal annual solar return: solve the Sun's longitude equal to its natal longitude. Bisection reaches 100 ms numerical tolerance. That tolerance is not a claim about the astronomical accuracy of this implementation.
+- Masa Pravesha: solve natal solar longitude + 30 degrees per solar month. These are real root-solved return instants, not twelve equal-duration divisions of a year.
+- Muntha: natal ascendant longitude plus 30 degrees per completed solar year. This version uses annual Muntha only, not a monthly progressed Muntha.
+- Return charts: use the selected residence coordinates, fixed across the forecast. Birth coordinates remain separate. Whole-sign houses, approximate Lahiri adjustment and mean lunar nodes are retained from the first release.
+- Geometric Tajika aspects: same-sign conjunction and sign-supported sextile, square, trine or opposition, with average planetary orbs. Sun 15, Moon 12, Mars 8, Mercury/Venus 7, Jupiter/Saturn 9 degrees. No Rahu/Ketu aspects are scored.
+- Annual/monthly interpretation: a theme must have a matching positive or negative signal in both charts. Selected planet-house rules and annual Muntha are scored separately for support and pressure. Moon is counted only when waxing and not in the same sign as Sun, Mars or Saturn. Friendly Jupiter/Venus contacts add support; hard Mars/Saturn contacts add pressure.
+- Calendar coverage: twelve consecutive month-length windows from the selected start date, using UTC midnight boundaries. Month-end anchors clamp to the final calendar day without drifting subsequent anchors. Every intersecting solar-month and annual chart contributes, weighted by its share of the window. Birthdays do not leave gaps or reuse the previous annual chart.
+- Output: five distinct domains ranked by their strongest supported monthly score. Headlines show that window, not a specific event day. Each month selects the strongest positive and negative domain. Opposing readings in one domain are explicitly marked mixed. Missing signals produce a clear no-signal message, not invented events.
 
-The default chart is a clearly labelled example, not the visitor's chart. Changing inputs requires submitting the form. Indian presets use +05:30, which must be corrected for historical dates where applicable. Custom places require manually verified coordinates and UTC offset.
+All numerical weights, domain groupings, calendar aggregation and modern English phrasing are **editorial heuristics**, not a classical strength calculation or calibrated probabilities. Positive and negative evidence is retained in downloadable calculation JSON.
 
-## Accuracy status: beta, reference validation pending
+## Scope and accuracy
 
-Astronomy Engine supplies astronomical positions. Our sidereal adjustment and ascendant implementation are approximate and not independently validated against Swiss Ephemeris. Supported dates: 1900–2100. Latitude: ±65°. Do not represent this release as a high-precision chart service or a validated future-event predictor. The seven tests check mechanics, not prediction validity or ephemeris reference agreement.
+This is a **core Tajika subset**, not a full classical Varshaphala implementation. It does not elect the year/month lord, calculate Panchavargiya Bala, sahams, dashas, divisional confirmation or the full sixteen yogas. Geometric aspects are not tested for application, separation, prohibition or eventual perfection. The forecast is therefore incomplete by classical standards.
 
-Readings are a small, transparent set of traditional placement heuristics. Ranking considers house matches, angular houses, own sign and exaltation sign. Scores are internal ordering signals, not confidence percentages. They do not account for aspects, combustion, retrograde strength, divisional confirmation, dashas or transits. No timed-event or medical/financial forecasts are generated. Astrology's predictive accuracy is not scientifically established.
+Astronomy Engine supplies astronomical positions, but the custom sidereal adjustment and ascendant have not been independently benchmarked against an ephemeris fixture set. Dates supported for birth: 1900–2100. Forecast must begin after birth and finish by 2100. Latitude is restricted to ±65°. Historical UTC offsets must be supplied manually. Indian city presets use +05:30, which is not correct for every historical date.
 
-## Architecture
+Astrological predictions are interpretations, not established future facts or scientifically validated forecasts. We do not generate death, disease, pregnancy, investment-return or other high-stakes event predictions. Direct wording must not be confused with measured certainty.
 
-- `dist/engine.js`: pure birth-time conversion, chart calculation and reading rules. Versioned chart data is independent of rendering.
-- `dist/app.js`: form orchestration, accessible SVG renderer and reading views.
-- `dist/styles.css`: responsive visual system.
-- `dist/vendor/astronomy.js`: vendored MIT-licensed Astronomy Engine (copyright and license included). Source: https://github.com/cosinekitty/astronomy/blob/master/source/js/astronomy.browser.min.js
-- `tests/engine.test.mjs`: Node test runner, no dependencies.
+## Source references
 
-A future Three.js renderer should consume the same chart model without owning astronomical calculations. Keep it lazy-loaded so the core reading experience remains fast and accessible.
+Balabhadra, *Hayanaratna*, Martin Gansten's Sanskrit-English critical edition (Brill, 2020), accessible translation:
 
-## Next milestones
+- Solar return, chapter 1.6: https://www.wisdomlib.org/hinduism/book/hayanaratna-the-jewel-of-annual-astrology/d/doc1500887.html
+- Monthly 30-degree steps, chapter 8.2: https://www.wisdomlib.org/hinduism/book/hayanaratna-the-jewel-of-annual-astrology/d/doc1500994.html
+- Planetary orbs, chapter 3.1: https://www.wisdomlib.org/hinduism/book/hayanaratna-the-jewel-of-annual-astrology/d/doc1500903.html
+- Muntha, chapters 5.1 and 5.3: https://www.wisdomlib.org/hinduism/book/hayanaratna-the-jewel-of-annual-astrology/d/doc1500929.html and https://www.wisdomlib.org/hinduism/book/hayanaratna-the-jewel-of-annual-astrology/d/doc1500931.html
+- Annual/monthly house judgements and conjunction of indications, chapter 8.6: https://www.wisdomlib.org/hinduism/book/hayanaratna-the-jewel-of-annual-astrology/d/doc1500998.html
 
-1. Select a production ephemeris and resolve its commercial licensing. Validate longitude, ascendant, nakshatra, nodes and date boundaries against an independent fixture set. Swiss Ephemeris licensing: https://www.astro.com/swisseph/swephinfo_e.htm
-2. Add place search with historical IANA timezone resolution and explicit handling of ambiguous/nonexistent local times. Validate birth uncertainty and show when placements change across that uncertainty window.
-3. Implement and validate Vimshottari periods, divisional charts and aspects before adding dated event interpretations.
-4. Expand a sourced, versioned rule catalogue. Retain contradictions and evidence internally, while keeping user readings direct and jargon-free. Never fabricate match percentages or guaranteed outcomes.
-5. Evaluate predictions prospectively with user consent, fixed event definitions, dates, misses and base-rate comparisons. Report measured results, not marketing accuracy claims.
-6. Add an optional 3D sky experience with a 2D fallback.
+Modern, nonliteral wording deliberately omits the source's severe deterministic claims. It should not be presented as a verbatim classical prediction.
 
-## Data and assets
+## Code map
 
-The app uses no analytics, local storage, backend or model provider. Font requests go to Google Fonts; system serif/sans fallbacks work offline. Birth fields never enter these requests. Hosting access logs may still exist. All ornamentation is CSS/SVG.
+- `dist/engine.js`: birth chart, exported instant-based `chartAt` calculation and legacy natal reading API.
+- `dist/forecast.js`: pure annual/monthly return solver, Tajika aspects, Muntha, evidence and report assembly.
+- `dist/app.js`: form, SVG chart, forecast view and local downloads.
+- `dist/styles.css`: responsive presentation.
+- `dist/vendor/astronomy.js`: Astronomy Engine, MIT license retained. Source: https://github.com/cosinekitty/astronomy/blob/master/source/js/astronomy.browser.min.js
+- `tests/`: UTC conversion, validation, ascendant geometry, house wrap, return residual, annual/monthly coverage, leap dates, Muntha, orbs, residence changes, evidence, ranking and mixed-signal tests.
+
+Charts remain data-first, so a future optional 3D renderer can share the same model.
+
+## Privacy and validation
+
+No birth details are stored or sent to a backend. Computation happens in browser memory. A clearly labelled example loads first. The calculation download contains dates and chart coordinates, so users should treat it as personal data. Google Fonts is optional with system fallbacks; hosting may retain normal access logs.
+
+Tests establish internal mathematical and behavioral consistency, not predictive accuracy. Next work: independent reference fixtures, historical timezone lookup, complete classical strength/year-lord/yoga implementations, expert rule review, and prospective evaluation that records both hits and misses.
