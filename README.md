@@ -55,3 +55,17 @@ Charts remain data-first, so a future optional 3D renderer can share the same mo
 No birth details are stored or sent to a backend. Computation happens in browser memory. A clearly labelled example loads first. The calculation download contains dates and chart coordinates, so users should treat it as personal data. Google Fonts is optional with system fallbacks; hosting may retain normal access logs.
 
 Tests establish internal mathematical and behavioral consistency, not predictive accuracy. Next work: independent reference fixtures, historical timezone lookup, complete classical strength/year-lord/yoga implementations, expert rule review, and prospective evaluation that records both hits and misses.
+
+## Life-so-far review
+
+`dist/history.js` now scans annual and completed monthly return charts from age five through the present. It selects up to ten past-event hypotheses with dates, age, plain-language details and explicit match criteria. The calculations use the existing Tajika core rules, with a stricter filter: annual and monthly signals must agree, exceed the opposite polarity and meet the minimum weights. Selection allows at most one event per solar year and two per claim type, with a small preference for temporal separation. This is not a complete biography or a claim that those events occurred.
+
+Work, money and adult relationship claims are excluded below eighteen. Childhood claims cover home and learning. If fewer than ten eligible years/signals exist, the app says so and shows fewer events. It never pads a child's report with adult events or includes a date window extending into the future. The current partial solar month is excluded.
+
+Historical residence is unknown, so all past returns use birth coordinates. This assumption can change the interpretation substantially for someone who moved. The event templates add editorial specificity and have not been empirically validated. Similar descriptions can fit many people; matches do not prove that a chart uniquely identifies the person. Repeated trials and memory bias can inflate apparent agreement.
+
+`dist/history-worker.js` runs the full scan in a module Web Worker so the chart and forecast remain usable. Submitting another birth profile terminates the old scan. `dist/history-view.js` renders the interactive, keyboard-accessible timeline and review cards. Matches, misses, uncertainty and unreviewed events are counted separately. Claims are generated before feedback and never adapted to it.
+
+The optional vertical progress display uses only the person's own impact ratings (step forward, no major change, setback). Unrated events sit in a separate band. Lines connect adjacent rated events only, leaving gaps for unreviewed events. Points are slightly staggered within categorical bands to reduce overlap. This is a subjective event-impact display, not a measured life-success curve.
+
+Feedback and notes remain in tab memory. Refreshing or changing birth details clears them. Resubmitting the same birth profile on the same day preserves the review. The local JSON download includes the original claims, calculation evidence, notes, verdicts and review counts. No feedback is sent to a server or used to tune later forecasts.

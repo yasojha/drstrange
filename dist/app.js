@@ -1,5 +1,6 @@
 import {calculate,SIGNS} from './engine.js';
 import {buildForecast} from './forecast.js';
+import {startLifeHistory} from './history-view.js';
 const $=s=>document.querySelector(s),form=$('#birth-form');
 const cities={Delhi:[28.6139,77.209],Bikaner:[28.0229,73.3119],Mumbai:[19.076,72.8777],Bengaluru:[12.9716,77.5946],Kolkata:[22.5726,88.3639],Chennai:[13.0827,80.2707],Jaipur:[26.9124,75.7873]};
 let chart,forecast,example=true,selected=1;
@@ -28,7 +29,7 @@ function update(isExample){
  const date=new Date(input.date+'T12:00:00Z').toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric',timeZone:'UTC'});
  $('#chart-subtitle').textContent=`${isExample?'Example chart · ':''}${date}, ${input.time} · ${input.city==='custom'?`${input.lat}°, ${input.lon}°`:$('#city').selectedOptions[0].textContent}`;
  const moon=chart.planets.find(p=>p.name==='Moon');$('#chart-stats').innerHTML=[['RISING SIGN',SIGNS[chart.ascSign]],['MOON SIGN',SIGNS[moon.sign]],['BIRTH STAR',chart.nakshatra]].map(([k,v])=>`<div class="stat"><span>${k}</span><strong>${v}</strong></div>`).join('');
- $('#planet-table').innerHTML=chart.planets.map(p=>`<tr><td>${p.name}</td><td>${SIGNS[p.sign]}</td><td>${p.degree.toFixed(2)}°</td><td>${p.house}</td></tr>`).join('');drawChart();showHouse();renderReadings();
+ $('#planet-table').innerHTML=chart.planets.map(p=>`<tr><td>${p.name}</td><td>${SIGNS[p.sign]}</td><td>${p.degree.toFixed(2)}°</td><td>${p.house}</td></tr>`).join('');drawChart();showHouse();renderReadings();startLifeHistory(input,isExample);
 }
 $('#city').addEventListener('change',()=>{const city=cities[$('#city').value];if(city){form.elements.lat.value=city[0];form.elements.lon.value=city[1];form.elements.offset.value=5.5;}else $('#location-details').open=true;});
 for(const key of ['lat','lon'])form.elements[key].addEventListener('input',()=>{$('#city').value='custom';});
