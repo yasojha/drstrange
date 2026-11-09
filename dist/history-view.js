@@ -5,9 +5,11 @@ const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&g
 const date=d=>new Date(d).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'});
 const range=e=>`${date(e.start)} – ${date(new Date(+e.end-1))}`;
 let worker=null,report=null,forecastTimeline=null,reviews={},selected=null,identity=null,isExample=false;
+let drawerTimer=null,drawerScroll=0;
 const states={match:'Matches',miss:'Doesn’t match',unsure:'Not sure'};
-export function setForecastTimeline(next){forecastTimeline=next;if(report)render();}
+export function setForecastTimeline(next){closeDrawer(true);forecastTimeline=next;if(report)render();}
 export function startLifeHistory(input,example){
+ closeDrawer(true);
  const today=new Date(),key=JSON.stringify([input.date,input.time,input.offset,input.lat,input.lon,today.toISOString().slice(0,10)]);isExample=example;
  if(key===identity&&report){render();return;}
  worker?.terminate();worker=null;report=null;reviews={};selected=null;identity=key;
@@ -75,20 +77,46 @@ function revealSelection(target){
  if(target==='past')$('#future-detail').hidden=true;
  drawCalendar();
  const detail=target==='past'?document.getElementById('life-card-'+selected):$('#future-detail');
+ if(matchMedia('(max-width:760px)').matches){openDrawer(detail,target);return;}
  detail.setAttribute('tabindex','-1');detail.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'start'});detail.focus({preventScroll:true});
 }
+function openDrawer(detail,target){
+ const dialog=$('#mobile-detail');
+ clearTimeout(drawerTimer);
+ if(!dialog.open){drawerScroll=window.scrollY;dialog.showModal();}
+ $('#drawer-title').textContent=target==='past'?'Past prediction':'Month forecast';
+ $('#drawer-content').replaceChildren(detail.querySelector('article').cloneNode(true));
+ requestAnimationFrame(()=>dialog.classList.add('is-visible'));
+ $('#drawer-close').focus({preventScroll:true});
+}
+function closeDrawer(immediate=false){
+ const dialog=$('#mobile-detail');if(!dialog.open)return;
+ clearTimeout(drawerTimer);dialog.classList.remove('is-visible');
+ const finish=()=>{dialog.close();$('#drawer-content').replaceChildren();if(!immediate){
+  const opener=selected?.startsWith('month-')?document.querySelector(`[data-month="${selected.slice(6)}"]`):document.querySelector(`[data-event="${selected}"]`);
+  opener?.focus({preventScroll:true});window.scrollTo({top:drawerScroll,behavior:'instant'});
+ }};
+ if(immediate||matchMedia('(prefers-reduced-motion: reduce)').matches)finish();
+ else drawerTimer=setTimeout(finish,240);
+}
+$('#drawer-close').addEventListener('click',()=>closeDrawer());
+$('#mobile-detail').addEventListener('cancel',e=>{e.preventDefault();closeDrawer();});
+$('#mobile-detail').addEventListener('click',e=>{if(e.target.id==='mobile-detail')closeDrawer();});
+matchMedia('(max-width:760px)').addEventListener('change',e=>{if(!e.matches)closeDrawer(true);});
 function choose(id){selected=id;revealSelection('past');}
 function chooseMonth(index){const m=forecastTimeline?.months[index];if(!m)return;selected=`month-${index}`;renderFuture(m);revealSelection('future');}
 $('#life-timeline').addEventListener('click',e=>{const past=e.target.closest('[data-event]'),future=e.target.closest('[data-month]');if(past)choose(past.dataset.event);else if(future)chooseMonth(Number(future.dataset.month));});
-$('#life-cards').addEventListener('click',e=>{
+function reviewClick(e){
  const button=e.target.closest('[data-verdict],[data-clear]');if(!button)return;
  const id=button.dataset.id||button.dataset.clear,existing=reviews[id]||{};
  const verdict=button.dataset.verdict;
  reviews[id]={...existing,verdict};
- const card=document.querySelector(`[data-card="${id}"]`);
- card.querySelectorAll('[data-verdict]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.verdict===verdict)));
- card.querySelector('[data-badge]').textContent=states[verdict]||'Not reviewed';
+ document.querySelectorAll(`[data-card="${id}"]`).forEach(card=>{
+  card.querySelectorAll('[data-verdict]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.verdict===verdict)));
+  card.querySelector('[data-badge]').textContent=states[verdict]||'Not reviewed';
+ });
  selected=id;updateSummary();drawCalendar();document.querySelectorAll('[data-card]').forEach(el=>el.classList.toggle('selected',el.dataset.card===id));
-});
-$('#life-cards').addEventListener('input',e=>{if(!e.target.matches('[data-note]'))return;const id=e.target.dataset.note;reviews[id]={...reviews[id],note:e.target.value};});
+}
+function reviewInput(e){if(!e.target.matches('[data-note]'))return;const id=e.target.dataset.note;reviews[id]={...reviews[id],note:e.target.value};document.querySelectorAll(`[data-note="${id}"]`).forEach(note=>{if(note!==e.target)note.value=e.target.value;});}
+for(const container of [$('#life-cards'),$('#drawer-content')]){container.addEventListener('click',reviewClick);container.addEventListener('input',reviewInput);}
 $('#life-export').addEventListener('click',()=>{if(!report)return;const output={...report,exportedAt:new Date().toISOString(),reviews,summary:reviewSummary(report.events,reviews)};const url=URL.createObjectURL(new Blob([JSON.stringify(output,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='vedik-life-review.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});

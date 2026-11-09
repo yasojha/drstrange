@@ -17,3 +17,17 @@
 
 /* Show only months with a reading; leave no implied empty calendar slots. */
 .calendar-months{display:flex;flex-wrap:wrap;gap:8px}.calendar-month{flex:0 1 150px;min-width:135px}
+
+/* Mobile reading drawer keeps the calendar at its current scroll position. */
+.mobile-detail{display:none}@media(max-width:760px){
+ .timeline-detail{display:none}
+ .mobile-detail[open]{display:block;position:fixed;inset:auto 0 0;width:100%;max-width:none;max-height:88dvh;margin:0;padding:0;border:0;border-radius:18px 18px 0 0;background:var(--paper);box-shadow:0 -12px 35px #1a2b2730;transform:translateY(100%);opacity:0;transition:transform .24s ease-out,opacity .24s ease-out;overflow:hidden}
+ .mobile-detail[open].is-visible{transform:translateY(0);opacity:1}
+ .mobile-detail::backdrop{background:#1a2b2780}
+ .drawer-bar{position:relative;display:flex;align-items:center;justify-content:space-between;padding:18px 20px 12px;border-bottom:1px solid var(--line)}
+ .drawer-bar strong{font-size:12px;font-weight:600}.drawer-grip{position:absolute;left:50%;top:7px;transform:translateX(-50%);width:36px;height:4px;border-radius:4px;background:#bdc2b2}
+ #drawer-close{border:0;background:transparent;font-size:26px;line-height:1;padding:0 5px}
+ #drawer-content{overflow:auto;overscroll-behavior:contain;max-height:calc(88dvh - 59px);padding:16px 16px max(22px,env(safe-area-inset-bottom))}
+ #drawer-content .life-card,#drawer-content .month-card{margin:0;padding:20px;background:#faf8f1}
+}
+@media(prefers-reduced-motion:reduce){.mobile-detail[open]{transition:none;transform:none;opacity:1}}

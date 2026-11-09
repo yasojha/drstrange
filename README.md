@@ -73,3 +73,5 @@ Historical residences are unknown, so past returns use the birthplace. The calen
 ## Unified calendar interface
 
 The past and next-year readings share one calendar section. It starts with the first calculated past candidate rather than birth or age twelve, and ends with the last forecast month. Past cards and future month details remain hidden until their calendar item is clicked; the five annual headlines stay above the calendar. Past review counts are in a disclosure below the detail panel.
+
+On screens up to 760 px wide, selecting a calendar item opens its past review or future month in an animated bottom drawer. The drawer closes with its close button, backdrop, or Escape, and restores the calendar scroll position. Desktop keeps the inline detail panel. Review notes and verdicts use the same in-memory state in both views.
