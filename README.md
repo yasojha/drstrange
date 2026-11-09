@@ -69,3 +69,7 @@ Historical residences are unknown, so past returns use the birthplace. The calen
 ## Partial KP timing check
 
 `dist/kp.js` calculates nakshatra star/sub lords and Vimshottari major/sub periods from the natal Moon. Its event-house support currently uses the app’s approximate Lahiri longitudes and whole-sign natal houses. It does **not** calculate KP ayanamsa, Placidus cusps, cuspal sub-lord promises, node agency or ruling planets. It is a partial KP-inspired timing check, not an independent validation. The annual and monthly forecast cards show its support, mixed signal or lack of support. The past calendar ranks stronger Tajika matches first; lower-threshold exploratory matches need at least partial KP timing support and are identified as such. Ten is a maximum for profiles with enough candidates, never proof of ten actual events.
+
+## Unified calendar interface
+
+The past and next-year readings share one calendar section. It starts with the first calculated past candidate rather than birth or age twelve, and ends with the last forecast month. Past cards and future month details remain hidden until their calendar item is clicked; the five annual headlines stay above the calendar. Past review counts are in a disclosure below the detail panel.

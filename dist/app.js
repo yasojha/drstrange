@@ -1,7 +1,7 @@
 import {setupLocations} from './locations.js';
 import {calculate,SIGNS} from './engine.js';
 import {buildForecast} from './forecast.js';
-import {startLifeHistory} from './history-view.js';
+import {startLifeHistory,setForecastTimeline} from './history-view.js';
 const $=s=>document.querySelector(s),form=$('#birth-form');
 setupLocations(form);
 let chart,forecast,example=true,selected=1;
@@ -23,7 +23,7 @@ function renderReadings(){
  $('#forecast-range').textContent=`${dateLabel(forecast.from)} – ${dateLabel(new Date(forecast.to.getTime()-86400000))}`;
  $('#reading-note').textContent=`${example?'Example forecast · ':''}Astrological forecasts, not established facts. Tajika core beta.`;
  $('#headlines').innerHTML=forecast.headlines.map((h,i)=>`<article class="headline"><span class="headline-number">0${i+1}</span><div><div class="headline-meta"><span class="${h.kind==='watch'?'watch-tag':'good-tag'}">${h.score===0?'NO CLEAR SIGNAL':h.kind==='good'?'GOOD THINGS':'WATCH OUT'}</span><span>${esc(h.label)}</span></div><h3>${esc(h.title)}</h3><p>${esc(h.detail)}</p>${h.kp?`<p class="kp-status">${esc(kpLabel(h.kp))}</p>`:''}</div><span class="headline-date">${h.score?esc(periodLabel(forecast.months[h.month])):'Across this year'}</span></article>`).join('');
- $('#monthly-cards').innerHTML=forecast.months.map(m=>`<article class="month-card"><div class="month-top"><span class="eyebrow">MONTH ${String(m.index+1).padStart(2,'0')}</span><span>↗</span></div><h3>${esc(new Date(m.start).toLocaleDateString('en-GB',{month:'long',year:'numeric',timeZone:'UTC'}))}</h3><p class="month-date">${esc(periodLabel(m))}</p>${m.mixed?'<p class="mixed-note">A mixed month in this area.</p>':''}<div class="month-good"><h4>Good things</h4><p>${esc(m.good?(m.mixed?`There is progress in ${m.good.label.toLowerCase()}, but it is uneven.`:m.good.good):'No clear positive stands out this month.')}</p>${m.good?`<span>${esc(m.good.detailGood)}</span><small class="kp-status">${esc(kpLabel(m.kpGood))}</small>`:''}</div><div class="month-watch"><h4>Watch out</h4><p>${esc(m.watch?m.watch.watch:'No specific warning stands out this month.')}</p>${m.watch?`<span>${esc(m.watch.detailWatch)}</span><small class="kp-status">${esc(kpLabel(m.kpWatch))}</small>`:''}</div></article>`).join('');
+ setForecastTimeline(forecast);
 }
 function update(isExample){
  const input=Object.fromEntries(new FormData(form));const next=calculate(input,window.Astronomy);const location=input.returnLocation==='custom'?{lat:input.returnLat,lon:input.returnLon}:{lat:input.lat,lon:input.lon};if(input.returnLocation==='custom'&&(!input.returnLat.trim()||!input.returnLon.trim()))throw Error('Enter your current coordinates.');const nextForecast=buildForecast(input,window.Astronomy,{start:new Date(input.forecastStart+'T00:00:00Z'),location});chart=next;forecast=nextForecast;example=isExample;selected=1;
@@ -31,7 +31,7 @@ function update(isExample){
  const date=new Date(input.date+'T12:00:00Z').toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric',timeZone:'UTC'});
  $('#chart-subtitle').textContent=`${isExample?'Example chart · ':''}${date}, ${input.time} · ${input.city==='custom'?`${input.lat}°, ${input.lon}°`:$('#city').selectedOptions[0].textContent}`;
  const moon=chart.planets.find(p=>p.name==='Moon');$('#chart-stats').innerHTML=[['RISING SIGN',SIGNS[chart.ascSign]],['MOON SIGN',SIGNS[moon.sign]],['BIRTH STAR',chart.nakshatra]].map(([k,v])=>`<div class="stat"><span>${k}</span><strong>${v}</strong></div>`).join('');
- $('#planet-table').innerHTML=chart.planets.map(p=>`<tr><td>${p.name}</td><td>${SIGNS[p.sign]}</td><td>${p.degree.toFixed(2)}°</td><td>${p.house}</td></tr>`).join('');drawChart();showHouse();renderReadings();startLifeHistory(input,isExample);
+ $('#planet-table').innerHTML=chart.planets.map(p=>`<tr><td>${p.name}</td><td>${SIGNS[p.sign]}</td><td>${p.degree.toFixed(2)}°</td><td>${p.house}</td></tr>`).join('');drawChart();showHouse();startLifeHistory(input,isExample);renderReadings();
 }
 $('#return-location').addEventListener('change',()=>{const custom=$('#return-location').value==='custom';$('#return-coordinates').hidden=!custom;form.elements.returnLat.required=custom;form.elements.returnLon.required=custom;});
 $('#audit-download').addEventListener('click',()=>{if(!forecast)return;const url=URL.createObjectURL(new Blob([JSON.stringify(forecast,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='vedik-tajika-calculations.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
