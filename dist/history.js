@@ -1,5 +1,6 @@
 import {calculate,chartAt,wrap} from './engine.js';
 import {solarReturn,munthaLongitude,chartSignals} from './forecast.js';
+import {kpTimingCheck} from './kp.js';
 const DAY=86400000;
 // Editorial major-event hypotheses. These are not classical event-certainty
 // rules. Eligibility requires multiple domains and distinct evidence in both
@@ -39,6 +40,27 @@ export function majorEventMatches(annualSignals,monthlySignals,age){
  return [{rule,score,annualEvidence:supportingEvidence(annualSignals,rule),monthlyEvidence:supportingEvidence(monthlySignals,rule)}];
  });
 }
+// Broader exploratory candidates are ranked below strict two-chart matches.
+// Both life areas must have net support across the two return charts; neither
+// chart may strongly oppose the claim. This never uses known biographical data.
+export function exploratoryMatches(annualSignals,monthlySignals,age){
+ return majorEventRules.flatMap(rule=>{
+  if(age<rule.minAge)return [];
+  let score=0;
+  for(const [domain,kind] of rule.requires){
+   const a=annualSignals.find(r=>r.id===domain),m=monthlySignals.find(r=>r.id===domain);
+   if(!a||!m)return [];
+   const key=kind==='good'?'positive':'negative',other=kind==='good'?'negative':'positive';
+   const aNet=a[key]-a[other],mNet=m[key]-m[other];
+   if(aNet+mNet<1.5||aNet< -0.5||mNet< -0.5)return [];
+   score+=aNet+mNet;
+  }
+  if(score<3.5)return [];
+  const annualEvidence=supportingEvidence(annualSignals,rule),monthlyEvidence=supportingEvidence(monthlySignals,rule);
+  if(!annualEvidence.length||!monthlyEvidence.length)return [];
+  return [{rule,score,annualEvidence,monthlyEvidence}];
+ });
+}
 export function reviewSummary(events,reviews={}){
  const summary={matches:0,misses:0,unsure:0,unreviewed:0,total:events.length};
  for(const e of events){const value=reviews[e.id]?.verdict;summary[value==='match'?'matches':value==='miss'?'misses':value==='unsure'?'unsure':'unreviewed']++;}return summary;
@@ -46,10 +68,10 @@ export function reviewSummary(events,reviews={}){
 export function selectLifeEvents(candidates,limit=10){
  const sorted=[...candidates].sort((a,b)=>b.score-a.score||+a.start-+b.start||a.id.localeCompare(b.id));
  const chosen=[],typeCounts=new Map();
- // Never repeat a one-time milestone. Other event types are limited to two,
- // at least three solar years apart. Ten is a ceiling, never a target.
+ // Never repeat a one-time milestone. Other event types are limited to four,
+ // at least two solar years apart. Ten is a ceiling, never a target.
  while(chosen.length<limit){
- const eligible=sorted.filter(c=>!chosen.includes(c)&&(typeCounts.get(c.ruleId)||0)<(majorEventRules.find(r=>r.id===c.ruleId)?.once?1:2)&&!chosen.some(e=>(e.ruleId===c.ruleId&&Math.abs(e.annualYear-c.annualYear)<3))&&chosen.filter(e=>e.annualYear===c.annualYear).length<2);
+ const eligible=sorted.filter(c=>!chosen.includes(c)&&(typeCounts.get(c.ruleId)||0)<(majorEventRules.find(r=>r.id===c.ruleId)?.once?1:4)&&!chosen.some(e=>(e.ruleId===c.ruleId&&Math.abs(e.annualYear-c.annualYear)<2))&&chosen.filter(e=>e.annualYear===c.annualYear).length<2);
  if(!eligible.length)break;
  const adjusted=c=>c.score+(chosen.length?Math.min(5,Math.min(...chosen.map(e=>Math.abs(+e.start-+c.start)))/(365.25636*DAY))*0.35:0);
  eligible.sort((a,b)=>adjusted(b)-adjusted(a)||b.score-a.score||+a.start-+b.start||a.id.localeCompare(b.id));
@@ -75,14 +97,19 @@ export function buildLifeHistory(input,A,{asOf=new Date(),onProgress=()=>{}}={})
  // Use completed solar months only, never a prediction window extending beyond today.
  if(boundaries[month+1]>cutoff)break;
  const monthly=chartAt(boundaries[month],input.lat,input.lon,A),monthlySignals=chartSignals(monthly);
- for(const match of majorEventMatches(annualSignals,monthlySignals,age)){
+ const strict=majorEventMatches(annualSignals,monthlySignals,age);
+ const exploratory=exploratoryMatches(annualSignals,monthlySignals,age);
+ for(const match of [...strict,...exploratory.filter(m=>!strict.some(s=>s.rule.id===m.rule.id))]){
  const {rule,score,annualEvidence,monthlyEvidence}=match;
- const candidate={id:`history-v2-${year}-${month+1}-${rule.id}`,ruleId:rule.id,domain:rule.id,label:rule.label,kind:rule.kind,title:rule.title,detail:rule.detail,check:rule.check,score,age,annualYear:year,start:boundaries[month],end:boundaries[month+1],evidence:{requirements:rule.requires,annual:annualEvidence,monthly:monthlyEvidence,annualReturn:start,monthlyReturn:boundaries[month],muntha,annualAscendant:annual.ascendant,monthlyAscendant:monthly.ascendant}};
+ const kp=kpTimingCheck(birthChart,rule.id,new Date((+boundaries[month]+ +boundaries[month+1])/2));
+ const tier=strict.some(s=>s.rule.id===rule.id)?'stronger':'exploratory';
+ if(tier==='exploratory'&&kp.support===0)continue;
+ const candidate={id:`history-v4-${year}-${month+1}-${rule.id}`,ruleId:rule.id,domain:rule.id,label:rule.label,kind:rule.kind,title:rule.title,detail:rule.detail,check:rule.check,score:(tier==='stronger'?score+10:score)+kp.support,rawScore:score,tier,kp,age,annualYear:year,start:boundaries[month],end:boundaries[month+1],evidence:{requirements:rule.requires,annual:annualEvidence,monthly:monthlyEvidence,annualReturn:start,monthlyReturn:boundaries[month],muntha,annualAscendant:annual.ascendant,monthlyAscendant:monthly.ascendant}};
  if(!yearBest.has(rule.id)||yearBest.get(rule.id).score<score)yearBest.set(rule.id,candidate);
  }
  }
  candidates.push(...yearBest.values());start=end;onProgress({completed:year-firstYear+1,total:Math.max(1,lastYear-firstYear+1)});
  }
  const events=selectLifeEvents(candidates);
- return {version:'retrospective-major-3',birth,asOf:cutoff,events,annualReturns,annualCount,candidateCount:candidates.length,requestedCount:10,location:{lat:Number(input.lat),lon:Number(input.lon),assumption:'Birthplace used for every past return. Historical residences are not known.'},selection:'Major-event editorial rules require two agreeing domains, distinct evidence and at least two named planets in each chart, with total net score at least eight. At most two per solar year, one for each one-time milestone, two for repeatable types at least three years apart. No generic fallback.',limits:['Retrospective hypotheses, not established biography','Solar-month windows are not exact event dates','Past locations assumed; missing historical residence can change houses','Only completed solar months from age twelve onward','Age is an exclusion filter only; routine work and ordinary expenses are never candidates','This review is not a controlled test of predictive accuracy']};
+ return {version:'retrospective-major-4',birth,asOf:cutoff,events,annualReturns,annualCount,candidateCount:candidates.length,requestedCount:10,location:{lat:Number(input.lat),lon:Number(input.lon),assumption:'Birthplace used for every past return. Historical residences are not known.'},selection:'Up to ten distinct claims are ranked from strict annual/monthly matches first and broader exploratory matches second. Exploratory matches require partial KP stellar-period support. KP check is incomplete without Placidus cusps and KP ayanamsa.',limits:['Retrospective hypotheses, not established biography','Solar-month windows are not exact event dates','Past locations assumed; missing historical residence can change houses','Only completed solar months from age twelve onward','KP timing check is partial, not independent validation','This review is not a controlled test of predictive accuracy']};
 }

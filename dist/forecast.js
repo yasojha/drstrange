@@ -1,4 +1,5 @@
 import {calculate,chartAt,wrap,houseOf} from './engine.js';
+import {kpTimingCheck} from './kp.js';
 const DAY=86400000;
 export const delta=(a,b)=>wrap(a-b+180)-180;
 export function solarLongitude(date,A){const T=(date.getTime()/DAY+2440587.5-2451545)/36525;return wrap(A.Ecliptic(A.GeoVector('Sun',date,true)).elon-(23.8530556+(5028.796195*T+1.1054348*T*T)/3600));}
@@ -32,6 +33,7 @@ const themes=[
  {id:'commitments',label:'Shared responsibilities',houses:[8,12],good:'A shared responsibility becomes easier to manage.',watch:'An old obligation needs attention.',detailGood:'You get room to resolve a pending matter.',detailWatch:'Check shared bills, paperwork and unfinished commitments.'},
  {id:'career',label:'Career',houses:[10],good:'Your work gets noticed.',watch:'Work brings delays and extra pressure.',detailGood:'This is the stronger period to ask for more responsibility.',detailWatch:'Confirm deadlines and ownership before saying yes.'}
 ];
+const kpRuleForTheme={initiative:'venture-breakthrough',money:'career-leap',home:'home-displacement',learning:'graduation',workload:'first-job',relationships:'marriage',commitments:'marriage',career:'career-leap'};
 function housePolarity(p){
  const h=p.house,benefic=['Jupiter','Venus','Mercury'].includes(p.name);
  if(h===3||h===11)return 'good';
@@ -94,11 +96,12 @@ export function buildForecast(input,A,{start=new Date(),location={lat:input.lat,
  for(let i=0;i<scores.length;i++){scores[i].positive+=s.signals[i].positive*weight;scores[i].negative+=s.signals[i].negative*weight;scores[i].evidence.push(...s.signals[i].evidence);}}
  const strongest=kind=>scores.filter(s=>s[kind]>0).sort((a,b)=>b[kind]-a[kind]||a.id.localeCompare(b.id))[0]||null;
  const good=strongest('positive'),watch=strongest('negative');
- return {index,start,end,scores,good,watch,mixed:!!good&&good.id===watch?.id,segments:parts.map(s=>({start:s.start,end:s.end,annualYear:s.annualYear,solarMonth:s.solarMonth}))};
+ const midpoint=new Date((+start+ +end)/2);
+ return {index,start,end,scores,good,watch,kpGood:good?kpTimingCheck(natal,kpRuleForTheme[good.id],midpoint):null,kpWatch:watch?kpTimingCheck(natal,kpRuleForTheme[watch.id],midpoint):null,mixed:!!good&&good.id===watch?.id,segments:parts.map(s=>({start:s.start,end:s.end,annualYear:s.annualYear,solarMonth:s.solarMonth}))};
  });
  const headlines=themes.map(t=>{
  const candidates=months.flatMap(m=>{const s=m.scores.find(s=>s.id===t.id);return [{kind:'good',score:s.positive,month:m.index},{kind:'watch',score:s.negative,month:m.index}];}).sort((a,b)=>b.score-a.score||a.month-b.month);
- const best=candidates[0];return {...t,...best,title:best.score===0?`No clear change in ${t.label.toLowerCase()}.`:t[best.kind],detail:best.score===0?'The current rules do not give a strong forecast here.':t[best.kind==='good'?'detailGood':'detailWatch']};
+ const best=candidates[0];return {...t,...best,kp:best.score?months[best.month][best.kind==='good'?'kpGood':'kpWatch']:null,title:best.score===0?`No clear change in ${t.label.toLowerCase()}.`:t[best.kind],detail:best.score===0?'The current rules do not give a strong forecast here.':t[best.kind==='good'?'detailGood':'detailWatch']};
  }).sort((a,b)=>b.score-a.score||a.id.localeCompare(b.id)).slice(0,5);
  return {version:'tajika-core-1',from,to,natal,location,annuals,months,headlines,method:{solar:'sidereal / approximate Lahiri',houses:'whole sign',monthly:'natal solar longitude + 30° per month',muntha:'natal ascendant + completed solar years × 30°',ranking:'editorial weights, annual and monthly agreement required, duration weighted',limitations:['Core Tajika subset, not full classical Varshaphala','No elected year lord, Panchavargiya Bala, sahams, dashas or full 16 yogas','Geometric aspects only; applying/separating and perfection not evaluated','Independent ephemeris and predictive validation pending']}};
 }
