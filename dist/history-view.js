@@ -42,12 +42,13 @@ function drawCalendar(){
  const monthNames=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
  $('#life-timeline').innerHTML=Array.from({length:last-first+1},(_,i)=>{
   const year=first+i;
-  const months=monthNames.map((name,m)=>{
-   if(year===first&&m<firstMonth||year===last&&m>lastMonth)return '';
+  const months=monthNames.flatMap((name,m)=>{
+   if(year===first&&m<firstMonth||year===last&&m>lastMonth)return [];
    const events=byMonth.get(`${year}-${m}`)||[],future=forecastMonths.get(`${year}-${m}`)||[];
-   return `<div class="calendar-month ${events.length?'has-events':''} ${future.length?'has-forecast':''}"><span>${name}</span>${events.map(e=>`<button type="button" class="past-event ${selected===e.id?'active':''}" data-event="${e.id}" aria-label="Past candidate: ${escape(e.label)}, ${escape(range(e))}, ${escape(states[status(e)]||'Not reviewed')}" title="${escape(e.title)} · ${escape(range(e))}">${escape(e.label)}<small>${escape(range(e))}</small></button>`).join('')}${future.map(m=>`<button type="button" class="forecast-event ${selected===`month-${m.index}`?'active':''}" data-month="${m.index}" aria-label="Forecast month ${m.index+1}: ${escape(range(m))}">Year ahead <small>${escape(range(m))}</small></button>`).join('')}</div>`;
-  }).join('');
-  return `<div class="calendar-year"><strong>${year}</strong><div class="calendar-months">${months}</div></div>`;
+   if(!events.length&&!future.length)return [];
+   return [`<div class="calendar-month ${events.length?'has-events':''} ${future.length?'has-forecast':''}"><span>${name}</span>${events.map(e=>`<button type="button" class="past-event ${selected===e.id?'active':''}" data-event="${e.id}" aria-label="Past candidate: ${escape(e.label)}, ${escape(range(e))}, ${escape(states[status(e)]||'Not reviewed')}" title="${escape(e.title)} · ${escape(range(e))}">${escape(e.label)}<small>${escape(range(e))}</small></button>`).join('')}${future.map(m=>`<button type="button" class="forecast-event ${selected===`month-${m.index}`?'active':''}" data-month="${m.index}" aria-label="Forecast month ${m.index+1}: ${escape(range(m))}">Year ahead <small>${escape(range(m))}</small></button>`).join('')}</div>`];
+  });
+  return months.length?`<div class="calendar-year"><strong>${year}</strong><div class="calendar-months">${months.join('')}</div></div>`:'';
  }).join('');
  $('#life-event-key').innerHTML='<span class="calendar-legend past">● Past candidate</span><span class="calendar-legend future">● Forecast month</span>';
 }
