@@ -28,29 +28,27 @@ function updateSummary(){
  $('#life-summary').innerHTML=[['Matches',s.matches],['Doesn’t match',s.misses],['Not sure',s.unsure],['Not reviewed',s.unreviewed]].map(([name,n])=>`<div><strong>${n}</strong><span>${name}</span></div>`).join('');
  $('#life-review-progress').textContent=`${s.total-s.unreviewed} of ${s.total} reviewed. This is your assessment, not a measured accuracy score.`;
 }
-function drawTimeline(){
- if(!report.events.length){$('#life-timeline').innerHTML='<p class="empty">No qualifying events to plot. The engine does not have enough support for a major-event claim in this profile.</p>';$('#life-event-key').innerHTML='';return;}
- const width=Math.max(900,report.events.length*105+170),left=145,right=width-45;
- const start=+new Date(report.birth),end=+new Date(report.asOf),x=event=>left+(((+new Date(event.start)+ +new Date(event.end))/2-start)/(end-start))*(right-left);
- const rowY=event=>({forward:70,neutral:145,setback:220})[reviews[event.id]?.impact]??315;
- // Stagger points inside each categorical band so adjacent years remain clickable.
- const y=event=>rowY(event)+(report.events.indexOf(event)%2?17:-17);
- const labels=[['Step forward',70],['No major change',145],['Setback',220],['Not rated',315]];
- const ticks=Array.from({length:6},(_,i)=>{const t=start+(end-start)*i/5;return {x:left+(right-left)*i/5,label:new Date(t).getUTCFullYear()};});
- const paths=report.events.slice(1).map((e,i)=>{const prev=report.events[i];return reviews[e.id]?.impact&&reviews[prev.id]?.impact?`<line x1="${x(prev)}" y1="${y(prev)}" x2="${x(e)}" y2="${y(e)}" stroke="#b8bfa7" stroke-width="2"/>`:'';}).join('');
- const marks=report.events.map((e,i)=>{const cx=x(e),cy=y(e),verdict=status(e),color=verdict==='match'?'#3c684a':verdict==='miss'?'#b45732':verdict==='unsure'?'#a08039':'#7c8176';return `<g class="life-point ${selected===e.id?'selected':''}" data-event="${e.id}" role="button" tabindex="0" aria-label="Event ${i+1}, ${escape(e.title)}, ${escape(range(e))}, ${escape(states[verdict]||'Not reviewed')}"><title>${escape(e.title)} · ${escape(range(e))}</title><circle cx="${cx}" cy="${cy}" r="${selected===e.id?21:17}" fill="#fbfaf5" stroke="${color}" stroke-width="${selected===e.id?3:2}"/><text x="${cx}" y="${cy+4}" text-anchor="middle" fill="${color}" font-size="12">${i+1}</text><text x="${cx}" y="${cy+(i%2?-30:38)}" text-anchor="middle" fill="#72796b" font-size="10">Age ${e.age}</text></g>`;}).join('');
+function drawCalendar(){
+ const first=new Date(report.birth).getUTCFullYear()+12,last=new Date(report.asOf).getUTCFullYear();
+ if(first>last){$('#life-timeline').innerHTML='<p class="empty">The past calendar begins at age 12.</p>';$('#life-event-key').innerHTML='';return;}
+ const byMonth=new Map();
+ for(const e of report.events){const midpoint=new Date((+new Date(e.start)+ +new Date(e.end))/2),key=`${midpoint.getUTCFullYear()}-${midpoint.getUTCMonth()}`;byMonth.set(key,[...(byMonth.get(key)||[]),e]);}
+ const monthNames=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+ $('#life-timeline').innerHTML=Array.from({length:last-first+1},(_,i)=>{
+  const year=first+i;
+  return `<div class="calendar-year"><strong>${year}</strong><div class="calendar-months">${monthNames.map((name,m)=>{const events=byMonth.get(`${year}-${m}`)||[];const beforeTwelve=year===first&&m<new Date(report.birth).getUTCMonth();return `<div class="calendar-month ${events.length?'has-events':''} ${beforeTwelve?'before-twelve':''}"><span>${beforeTwelve?'—':name}</span>${events.map(e=>`<button type="button" data-event="${e.id}" aria-label="${escape(e.label)}, ${escape(range(e))}, ${escape(states[status(e)]||'Not reviewed')}" title="${escape(e.title)} · ${escape(range(e))}">${escape(e.label)}<small>${escape(range(e))}</small></button>`).join('')}</div>`;}).join('')}</div></div>`;
+ }).join('');
  $('#life-event-key').innerHTML=report.events.map((e,i)=>`<button type="button" data-jump="${e.id}"><span>${String(i+1).padStart(2,'0')}</span> ${new Date(e.start).getUTCFullYear()} · ${escape(e.label)}</button>`).join('');
- $('#life-timeline').innerHTML=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} 390" style="min-width:${width}px" role="group" aria-label="Life event timeline from birth to today. Vertical positions show your own impact ratings, not astrological scores.">${labels.map(([label,cy])=>`<text x="0" y="${cy+4}" fill="#74796c" font-size="11">${label}</text><line x1="${left}" x2="${right}" y1="${cy}" y2="${cy}" stroke="#dcded1" stroke-dasharray="${cy===315?'3 5':'0'}"/>`).join('')}${ticks.map(t=>`<line x1="${t.x}" x2="${t.x}" y1="45" y2="335" stroke="#e9e7dc"/><text x="${t.x}" y="365" text-anchor="middle" fill="#74796c" font-size="11">${t.label}</text>`).join('')}${paths}${marks}</svg>`;
 }
+
 function render(){
  $('#life-count-title').textContent=report.events.length?`${report.events.length} major turning-point candidates.`:'No major turning point clears the current rules.';
- $('#life-note').textContent=`${isExample?'Example profile · ':''}Birth to ${date(report.asOf)}. Only major highs and lows. These are unverified event candidates, not known facts.`;
- $('#life-shortfall').textContent=report.events.length<10?'No school milestones, routine raises, ordinary bills or everyday work pressure. Fewer than ten is intentional: no generic filler.':'';
- $('#life-cards').innerHTML=report.events.map((e,i)=>`<article class="life-card ${selected===e.id?'selected':''}" id="life-card-${e.id}" data-card="${e.id}"><div class="life-card-top"><span class="event-number">${String(i+1).padStart(2,'0')}</span><span class="eyebrow">${escape(e.label)} · AGE ${e.age}</span><span class="review-badge" data-badge="${e.id}">${states[status(e)]||'Not reviewed'}</span></div><p class="life-date">${escape(range(e))}</p><h3>${escape(e.title)}</h3><p>${escape(e.detail)}</p><div class="match-definition"><strong>Strict match criteria</strong><p>${escape(e.check)} The event must fall inside the dates above.</p></div><fieldset class="review-options"><legend>Did this happen?</legend>${Object.entries(states).map(([value,label])=>`<button type="button" data-verdict="${value}" data-id="${e.id}" aria-pressed="${status(e)===value}">${label}</button>`).join('')}<button type="button" data-clear="${e.id}" class="clear-review">Clear</button></fieldset><label class="impact-label">What was its impact on your life?<select data-impact="${e.id}" ${status(e)!=='match'?'disabled':''}><option value="">Not rated</option><option value="forward">Step forward</option><option value="neutral">No major change</option><option value="setback">Setback</option></select></label><label class="event-note-label">What actually happened? <span>optional, kept in this tab</span><textarea data-note="${e.id}" maxlength="1000" rows="2" placeholder="Event, approximate date, and what matched or did not match">${escape(reviews[e.id]?.note||'')}</textarea></label></article>`).join('');
- for(const e of report.events){const select=document.querySelector(`[data-impact="${e.id}"]`);select.value=reviews[e.id]?.impact||'';}
- updateSummary();drawTimeline();
+ $('#life-note').textContent=`${isExample?'Example profile · ':''}Age 12 to ${date(report.asOf)}. Solar-month date windows are estimates, not exact event dates. Check each claim against your actual history.`;
+ $('#life-shortfall').textContent=report.events.length<10?'Only qualifying major events are shown. Fewer than ten means the engine found fewer than ten; it does not fill the calendar with age-based milestones.':'';
+ $('#life-cards').innerHTML=report.events.map((e,i)=>`<article class="life-card ${selected===e.id?'selected':''}" id="life-card-${e.id}" data-card="${e.id}"><div class="life-card-top"><span class="event-number">${String(i+1).padStart(2,'0')}</span><span class="eyebrow">${escape(e.label)} · AGE ${e.age}</span><span class="review-badge" data-badge="${e.id}">${states[status(e)]||'Not reviewed'}</span></div><p class="life-date">${escape(range(e))}</p><h3>${escape(e.title)}</h3><p>${escape(e.detail)}</p><div class="match-definition"><strong>Strict match criteria</strong><p>${escape(e.check)} The event must fall inside the dates above.</p></div><fieldset class="review-options"><legend>Did this happen?</legend>${Object.entries(states).map(([value,label])=>`<button type="button" data-verdict="${value}" data-id="${e.id}" aria-pressed="${status(e)===value}">${label}</button>`).join('')}<button type="button" data-clear="${e.id}" class="clear-review">Clear</button></fieldset><label class="event-note-label">What actually happened? <span>optional, kept in this tab</span><textarea data-note="${e.id}" maxlength="1000" rows="2" placeholder="Event, approximate date, and what matched or did not match">${escape(reviews[e.id]?.note||'')}</textarea></label></article>`).join('');
+ updateSummary();drawCalendar();
 }
-function choose(id,scroll=true){selected=id;document.querySelectorAll('[data-card]').forEach(el=>el.classList.toggle('selected',el.dataset.card===id));drawTimeline();if(scroll){const card=document.getElementById('life-card-'+id);card.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'start'});card.setAttribute('tabindex','-1');card.focus({preventScroll:true});}}
+function choose(id,scroll=true){selected=id;document.querySelectorAll('[data-card]').forEach(el=>el.classList.toggle('selected',el.dataset.card===id));drawCalendar();if(scroll){const card=document.getElementById('life-card-'+id);card.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'start'});card.setAttribute('tabindex','-1');card.focus({preventScroll:true});}}
 $('#life-event-key').addEventListener('click',e=>{const button=e.target.closest('[data-jump]');if(button)choose(button.dataset.jump);});
 $('#life-timeline').addEventListener('click',e=>{const point=e.target.closest('[data-event]');if(point)choose(point.dataset.event);});
 $('#life-timeline').addEventListener('keydown',e=>{const point=e.target.closest('[data-event]');if(point&&(e.key==='Enter'||e.key===' ')){e.preventDefault();choose(point.dataset.event);}});
@@ -58,13 +56,11 @@ $('#life-cards').addEventListener('click',e=>{
  const button=e.target.closest('[data-verdict],[data-clear]');if(!button)return;
  const id=button.dataset.id||button.dataset.clear,existing=reviews[id]||{};
  const verdict=button.dataset.verdict;
- reviews[id]={...existing,verdict,impact:verdict==='match'?existing.impact:undefined};
+ reviews[id]={...existing,verdict};
  const card=document.querySelector(`[data-card="${id}"]`);
  card.querySelectorAll('[data-verdict]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.verdict===verdict)));
  card.querySelector('[data-badge]').textContent=states[verdict]||'Not reviewed';
- const impact=card.querySelector('[data-impact]');impact.disabled=verdict!=='match';impact.value=reviews[id].impact||'';
- selected=id;updateSummary();drawTimeline();document.querySelectorAll('[data-card]').forEach(el=>el.classList.toggle('selected',el.dataset.card===id));
+ selected=id;updateSummary();drawCalendar();document.querySelectorAll('[data-card]').forEach(el=>el.classList.toggle('selected',el.dataset.card===id));
 });
-$('#life-cards').addEventListener('change',e=>{if(!e.target.matches('[data-impact]'))return;const id=e.target.dataset.impact;if(reviews[id]?.verdict!=='match')return;reviews[id].impact=e.target.value||undefined;drawTimeline();});
 $('#life-cards').addEventListener('input',e=>{if(!e.target.matches('[data-note]'))return;const id=e.target.dataset.note;reviews[id]={...reviews[id],note:e.target.value};});
 $('#life-export').addEventListener('click',()=>{if(!report)return;const output={...report,exportedAt:new Date().toISOString(),reviews,summary:reviewSummary(report.events,reviews)};const url=URL.createObjectURL(new Blob([JSON.stringify(output,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='vedik-life-review.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});

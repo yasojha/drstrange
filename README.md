@@ -56,11 +56,11 @@ No birth details are stored or sent to a backend. Computation happens in browser
 
 Tests establish internal mathematical and behavioral consistency, not predictive accuracy. Next work: independent reference fixtures, historical timezone lookup, complete classical strength/year-lord/yoga implementations, expert rule review, and prospective evaluation that records both hits and misses.
 
-## Major past turning points (v2)
+## Major past turning points (v3)
 
 The retrospective catalogue excludes schooling, college, exams, ordinary learning, routine raises, normal purchases and bills, minor disagreements, project starts without consequences, and everyday workload. Age is an exclusion filter only, never evidence for an event. There is no target of ten: zero to ten candidates is valid, with no generic fallback.
 
-`dist/history.js` scans completed monthly return periods from age five to today. Each editorial event rule requires two relevant domains in both annual and monthly charts, a net score of at least one in every required domain/chart, at least two distinct supporting reasons and two named planets per chart, and combined net score of at least eight. Duplicating a single aspect across two domains cannot pass the independent-evidence gate. Weak, mixed and one-domain signals fail. These weights are unvalidated editorial filters, not classical strength measurements or probability estimates.
+`dist/history.js` scans completed monthly return periods from age twelve to today. Each editorial event rule requires two relevant domains in both annual and monthly charts, a net score of at least one in every required domain/chart, at least two distinct supporting reasons and two named planets per chart, and combined net score of at least eight. Duplicating a single aspect across two domains cannot pass the independent-evidence gate. Weak, mixed and one-domain signals fail. These weights are unvalidated editorial filters, not classical strength measurements or probability estimates.
 
 Six major-event hypotheses are available: a joint career/income leap, a serious work/income reversal, an independent venture becoming meaningful income, a substantial financial shock, an unplanned loss of a settled living arrangement, and a sustained relationship rupture affecting home life. Dates, actual consequences and strict routine-event exclusions must all fit for a user-marked match. More specific language does not prove that chart factors uniquely identify these events. The catalogue contains no death, illness or other dramatic high-stakes fabrication.
 
@@ -71,3 +71,5 @@ The calculation still has all earlier Tajika-core limitations. Historical reside
 `dist/history-worker.js` runs in a module Web Worker. A new birth profile terminates the old scan. `dist/history-view.js` renders a keyboard-accessible timeline, detailed cards, separate match/miss/unsure counts and notes. User feedback never reranks or changes a claim. The graph uses only self-reported impact ratings, with unrated points in a separate band. It is not a life-success score.
 
 All answers stay in tab memory. Refresh or changed birth data clears them. Same-profile resubmission on the same day preserves the review. The local JSON export includes original hypotheses, evidence, criteria and feedback, without server transmission.
+
+The calendar displays solar-month windows rather than invented exact dates. Candidate types now include a marriage or formal partnership, a completed major qualification, the first substantial paid role and a first child alongside major career and financial changes. No known biography is loaded into the engine. A private local check against five user-supplied milestone windows matched **0/5**. The benchmark dates are deliberately excluded from the repository. This is a failed validation case, not evidence of predictive accuracy; the exact day cannot be inferred from this calculation.
