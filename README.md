@@ -1,6 +1,6 @@
 # Vedik / Dr Strange
 
-North Indian kundali plus a Tajika-based 12-month forecast: five ranked headlines first, then one good development and one caution for each month. Direct English, without astrological terminology in prediction cards.
+North Indian kundali, up to ten retrospective major-event hypotheses, and selected significant turning points over the next ten years. The five highest ranked future candidates lead the shared calendar. Months without selected events are hidden.
 
 ## Run
 
@@ -72,6 +72,10 @@ Historical residences are unknown, so past returns use the birthplace. The calen
 
 ## Unified calendar interface
 
-The past and next-year readings share one calendar section. It starts with the first calculated past candidate rather than birth or age twelve, and ends with the last forecast month. Past cards and future month details remain hidden until their calendar item is clicked; the five annual headlines stay above the calendar. Past review counts are in a disclosure below the detail panel.
+The past and next-ten-year readings share one calendar. It starts with the first calculated past candidate and shows only months containing a selected event. Past and future details remain hidden until their calendar item is clicked. The highest ranked future headlines stay above the calendar. Past review counts are in a disclosure below the detail panel.
 
-On screens up to 760 px wide, selecting a calendar item opens its past review or future month in an animated bottom drawer. The drawer closes with its close button, backdrop, or Escape, and restores the calendar scroll position. Desktop keeps the inline detail panel. Review notes and verdicts use the same in-memory state in both views.
+On screens up to 760 px wide, selecting a calendar item opens its past review or future turning point in an animated bottom drawer. The drawer closes with its close button, backdrop, or Escape, and restores the calendar scroll position. Desktop keeps the inline detail panel. Review notes and verdicts use the same in-memory state in both views.
+
+## Ten-year outlook
+
+`dist/long-term.js` scans annual Tajika returns and solar-month windows for ten years from the selected date. It uses the same multi-domain event rules and partial KP timing check as retrospective candidates, but excludes one-time firsts (marriage, graduation, first job, first child) because the app does not ask whether they already occurred. It selects at most eight major candidates, at most two per event type and one per solar year, then shows up to five leading headlines. These are unvalidated hypotheses; there is no guaranteed event or monthly quota. The user-selected residence is assumed constant for all future return charts. The older twelve-month theme engine remains in `dist/forecast.js` for calculation regression tests, but the UI no longer presents it.

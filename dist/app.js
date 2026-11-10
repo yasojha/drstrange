@@ -1,10 +1,9 @@
 import {setupLocations} from './locations.js';
 import {calculate,SIGNS} from './engine.js';
-import {buildForecast} from './forecast.js';
-import {startLifeHistory,setForecastTimeline} from './history-view.js';
+import {startLifeHistory} from './history-view.js';
 const $=s=>document.querySelector(s),form=$('#birth-form');
 setupLocations(form);
-let chart,forecast,example=true,selected=1;
+let chart,example=true,selected=1;
 const now=new Date();$('#forecast-start').value=[now.getFullYear(),String(now.getMonth()+1).padStart(2,'0'),String(now.getDate()).padStart(2,'0')].join('-');
 const topics=['Self & identity','Values & resources','Courage & communication','Home & belonging','Creativity & learning','Work & routines','Partnerships','Change & depth','Beliefs & exploration','Work & contribution','Community & aspirations','Rest & inner life'];
 const polygons=['220,20 320,120 220,220 120,120','20,20 220,20 120,120','20,20 120,120 20,220','20,220 120,120 220,220 120,320','20,220 120,320 20,420','20,420 120,320 220,420','220,220 320,320 220,420 120,320','220,420 320,320 420,420','420,420 320,320 420,220','220,220 320,120 420,220 320,320','420,220 320,120 420,20','420,20 320,120 220,20'];
@@ -16,25 +15,15 @@ function drawChart(){
  document.querySelectorAll('[data-house]').forEach(el=>{const select=()=>{selected=Number(el.dataset.house);drawChart();showHouse();$('#chart').querySelector(`[data-house="${selected}"]`).focus({preventScroll:true});};el.addEventListener('click',select);el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();select();}});});
 }
 function showHouse(){const p=chart.planets.filter(p=>p.house===selected);$('#house-detail').textContent=`House ${selected} · ${topics[selected-1]} · ${SIGNS[(chart.ascSign+selected-1)%12]}. ${p.length?p.map(p=>p.name).join(', '):'No planets here. An empty house does not mean this area of life is absent.'}`;}
-const dateLabel=d=>new Date(d).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'});
-const kpLabel=k=>k?`KP timing (partial): ${k.status==='supports'?'supports this theme':k.status==='mixed'?'mixed':'no supporting period'} · ${k.period.maha}/${k.period.bhukti}`:'';
-const periodLabel=m=>`${dateLabel(m.start)} – ${dateLabel(new Date(m.end.getTime()-86400000))}`;
-function renderReadings(){
- $('#forecast-range').textContent=`${dateLabel(forecast.from)} – ${dateLabel(new Date(forecast.to.getTime()-86400000))}`;
- $('#reading-note').textContent=`${example?'Example forecast · ':''}Astrological forecasts, not established facts. Tajika core beta.`;
- $('#headlines').innerHTML=forecast.headlines.map((h,i)=>`<article class="headline"><span class="headline-number">0${i+1}</span><div><div class="headline-meta"><span class="${h.kind==='watch'?'watch-tag':'good-tag'}">${h.score===0?'NO CLEAR SIGNAL':h.kind==='good'?'GOOD THINGS':'WATCH OUT'}</span><span>${esc(h.label)}</span></div><h3>${esc(h.title)}</h3><p>${esc(h.detail)}</p>${h.kp?`<p class="kp-status">${esc(kpLabel(h.kp))}</p>`:''}</div><span class="headline-date">${h.score?esc(periodLabel(forecast.months[h.month])):'Across this year'}</span></article>`).join('');
- setForecastTimeline(forecast);
-}
 function update(isExample){
- const input=Object.fromEntries(new FormData(form));const next=calculate(input,window.Astronomy);const location=input.returnLocation==='custom'?{lat:input.returnLat,lon:input.returnLon}:{lat:input.lat,lon:input.lon};if(input.returnLocation==='custom'&&(!input.returnLat.trim()||!input.returnLon.trim()))throw Error('Enter your current coordinates.');const nextForecast=buildForecast(input,window.Astronomy,{start:new Date(input.forecastStart+'T00:00:00Z'),location});chart=next;forecast=nextForecast;example=isExample;selected=1;
+ const input=Object.fromEntries(new FormData(form));const next=calculate(input,window.Astronomy);const location=input.returnLocation==='custom'?{lat:input.returnLat,lon:input.returnLon}:{lat:input.lat,lon:input.lon};if(input.returnLocation==='custom'&&(!input.returnLat.trim()||!input.returnLon.trim()))throw Error('Enter your current coordinates.');const forecastStart=new Date(input.forecastStart+'T00:00:00Z');if(!Number.isFinite(+forecastStart)||forecastStart<next.date||forecastStart.getUTCFullYear()>2089)throw Error('Choose a forecast start after birth and before 2090.');chart=next;example=isExample;selected=1;
  $('#chart-title').textContent=isExample?'A moment, mapped.':input.name.trim()?`${input.name.trim()}’s kundali`:'Your moment, mapped.';
  const date=new Date(input.date+'T12:00:00Z').toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric',timeZone:'UTC'});
  $('#chart-subtitle').textContent=`${isExample?'Example chart · ':''}${date}, ${input.time} · ${input.city==='custom'?`${input.lat}°, ${input.lon}°`:$('#city').selectedOptions[0].textContent}`;
  const moon=chart.planets.find(p=>p.name==='Moon');$('#chart-stats').innerHTML=[['RISING SIGN',SIGNS[chart.ascSign]],['MOON SIGN',SIGNS[moon.sign]],['BIRTH STAR',chart.nakshatra]].map(([k,v])=>`<div class="stat"><span>${k}</span><strong>${v}</strong></div>`).join('');
- $('#planet-table').innerHTML=chart.planets.map(p=>`<tr><td>${p.name}</td><td>${SIGNS[p.sign]}</td><td>${p.degree.toFixed(2)}°</td><td>${p.house}</td></tr>`).join('');drawChart();showHouse();startLifeHistory(input,isExample);renderReadings();
+ $('#planet-table').innerHTML=chart.planets.map(p=>`<tr><td>${p.name}</td><td>${SIGNS[p.sign]}</td><td>${p.degree.toFixed(2)}°</td><td>${p.house}</td></tr>`).join('');drawChart();showHouse();startLifeHistory(input,isExample,location);
 }
 $('#return-location').addEventListener('change',()=>{const custom=$('#return-location').value==='custom';$('#return-coordinates').hidden=!custom;form.elements.returnLat.required=custom;form.elements.returnLon.required=custom;});
-$('#audit-download').addEventListener('click',()=>{if(!forecast)return;const url=URL.createObjectURL(new Blob([JSON.stringify(forecast,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='vedik-tajika-calculations.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
 form.addEventListener('submit',e=>{e.preventDefault();try{update(false);$('#form-error').textContent='';if(innerWidth<760)$('#chart-title').scrollIntoView({behavior:'smooth',block:'start'});}catch(e){$('#form-error').textContent=e.message;}});
 for(const id of ['about-open','method-open'])$('#'+id).addEventListener('click',()=>$('#about').showModal());$('#about-close').addEventListener('click',()=>$('#about').close());
 $('#download').addEventListener('click',()=>{const svg=$('#chart svg').cloneNode(true);svg.querySelectorAll('[tabindex]').forEach(n=>n.removeAttribute('tabindex'));const style=document.createElementNS('http://www.w3.org/2000/svg','style');style.textContent='.cell{fill:#faf8ef;stroke:#aaa88c;stroke-width:1.2}.sign-label{font:11px sans-serif;fill:#7f846f}.planet-label{font:600 12px sans-serif;fill:#3b503d}.asc-label{font:9px sans-serif;fill:#ae633f}';svg.prepend(style);const url=URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(svg)],{type:'image/svg+xml'}));const a=document.createElement('a');a.href=url;a.download='vedik-kundali.svg';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});

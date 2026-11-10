@@ -39,9 +39,21 @@ export function setupLocations(form) {
  state.addEventListener('change',()=>{render();select();});
  city.addEventListener('change',select);
  for(const key of ['lat','lon'])form.elements[key].addEventListener('input',()=>{city.value='custom';status.textContent='Custom birthplace coordinates. Check the UTC offset at birth.';});
+ const profileKey='vedik-saved-birth-profile-v1';
+ $('#save-my-details').addEventListener('click',()=>{
+  if(!form.reportValidity())return;
+  const profile=Object.fromEntries(['name','date','time','city','lat','lon','offset'].map(k=>[k,form.elements[k].value]));
+  try{localStorage.setItem(profileKey,JSON.stringify(profile));status.textContent='Saved on this device. Use “Use saved details” to fill this form next time.';}
+  catch{status.textContent='This browser could not save the profile. Check browser storage settings.';}
+ });
  $('#use-my-details').addEventListener('click',()=>{
-  form.elements.name.value='Yash';form.elements.date.value='1996-09-19';form.elements.time.value='12:40';state.value='Rajasthan';render('Bikaner');select();
-  status.textContent='Your details are ready: 19 September 1996, 12:40 pm · Bikaner, Rajasthan, India. Tap “Show my life & next year” to calculate.';
+  let profile;try{profile=JSON.parse(localStorage.getItem(profileKey));}catch{}
+  if(!profile||!profile.date||!profile.time){status.textContent='No saved profile yet. Enter your birth details and tap “Save these details on this device”.';return;}
+  for(const key of ['name','date','time','lat','lon','offset'])if(profile[key]!==undefined)form.elements[key].value=profile[key];
+  const place=places.find(p=>p[0]===profile.city);
+  state.value=place?.[2]||'';render(profile.city||'custom');
+  if(!place)$('#location-details').open=true;
+  status.textContent='Saved birth details loaded. Check them and calculate your timeline.';
  });
  $('#use-current-location').addEventListener('click',()=>{
   if(!navigator.geolocation){status.textContent='Location is unavailable in this browser. Select a city or enter coordinates.';return;}
