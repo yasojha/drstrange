@@ -1,3 +1,4 @@
+import {readProfiles,captureProfile,saveProfile,deleteProfile} from './profiles.js';
 // Coordinates are city centres, not hospital-level positions.
 export const places = [
  ['Delhi','New Delhi','Delhi',28.6139,77.209],
@@ -39,21 +40,38 @@ export function setupLocations(form) {
  state.addEventListener('change',()=>{render();select();});
  city.addEventListener('change',select);
  for(const key of ['lat','lon'])form.elements[key].addEventListener('input',()=>{city.value='custom';status.textContent='Custom birthplace coordinates. Check the UTC offset at birth.';});
- const profileKey='vedik-saved-birth-profile-v1';
+ const selector=$('#profile-select'),profileName=$('#profile-name');
+ const refresh=(preferred='')=>{
+  const profiles=readProfiles(localStorage),names=Object.keys(profiles).sort((a,b)=>a.localeCompare(b));
+  selector.replaceChildren(new Option(names.length?'Select a saved profile':'No saved profiles',''));
+  for(const name of names)selector.add(new Option(name,name));
+  if(preferred&&profiles[preferred])selector.value=preferred;
+ };
+ try{refresh();}catch{status.textContent='Profile storage is unavailable in this browser.';}
  $('#save-my-details').addEventListener('click',()=>{
   if(!form.reportValidity())return;
-  const profile=Object.fromEntries(['name','date','time','city','lat','lon','offset'].map(k=>[k,form.elements[k].value]));
-  try{localStorage.setItem(profileKey,JSON.stringify(profile));status.textContent='Saved on this device. Use “Use saved details” to fill this form next time.';}
-  catch{status.textContent='This browser could not save the profile. Check browser storage settings.';}
+  const name=profileName.value.trim()||form.elements.name.value.trim()||selector.value;
+  try{saveProfile(localStorage,name,captureProfile(form));refresh(name);profileName.value=name;status.textContent=`Saved “${name}” on this device.`;}
+  catch(error){status.textContent=error.message==='Give this profile a name.'?error.message:'Could not save this profile. Check browser storage settings.';}
  });
  $('#use-my-details').addEventListener('click',()=>{
-  let profile;try{profile=JSON.parse(localStorage.getItem(profileKey));}catch{}
-  if(!profile||!profile.date||!profile.time){status.textContent='No saved profile yet. Enter your birth details and tap “Save these details on this device”.';return;}
-  for(const key of ['name','date','time','lat','lon','offset'])if(profile[key]!==undefined)form.elements[key].value=profile[key];
+  const profile=readProfiles(localStorage)[selector.value];
+  if(!profile){status.textContent='Choose a saved profile first. Profiles saved in another browser or device are not available here.';return;}
   const place=places.find(p=>p[0]===profile.city);
-  state.value=place?.[2]||'';render(profile.city||'custom');
-  if(!place)$('#location-details').open=true;
-  status.textContent='Saved birth details loaded. Check them and calculate your timeline.';
+  state.value=place?.[2]||'';render(place?.[0]||'custom');
+  for(const key of ['name','date','time','lat','lon','offset','returnLat','returnLon'])if(profile[key]!==undefined&&form.elements[key])form.elements[key].value=profile[key];
+  form.elements.returnLocation.value=profile.returnLocation==='custom'?'custom':'birth';
+  $('#return-location').dispatchEvent(new Event('change'));
+  $('#location-details').open=!place;
+  profileName.value=selector.value;
+  status.textContent=`Loaded “${selector.value}”. Calculating this profile now.`;
+  form.requestSubmit();
+ });
+ $('#delete-profile').addEventListener('click',()=>{
+  if(!selector.value){status.textContent='Choose a saved profile to delete.';return;}
+  const name=selector.value;
+  try{deleteProfile(localStorage,name);refresh();profileName.value='';status.textContent=`Deleted “${name}” from this device.`;}
+  catch{status.textContent='Could not delete this profile. Check browser storage settings.';}
  });
  $('#use-current-location').addEventListener('click',()=>{
   if(!navigator.geolocation){status.textContent='Location is unavailable in this browser. Select a city or enter coordinates.';return;}

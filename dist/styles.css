@@ -39,3 +39,5 @@
 .calendar-month.has-forecast:not(.has-events){background:#edf2eb;border-color:#b9cdbb;color:#365d42}
 .calendar-month.has-events.has-forecast{background:linear-gradient(135deg,#e9eddf 50%,#edf2eb 50%)}
 .calendar-legend.caution{color:#955537}.calendar-legend.historical{color:#355b76}
+
+.profile-controls{display:grid;gap:8px;margin:14px 0;padding:14px;background:#f5f5ec;border:1px solid var(--line);border-radius:5px}.profile-controls label{margin:0}.profile-controls .text-button{text-align:left}.profile-controls .small{margin:0}
