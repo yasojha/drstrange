@@ -79,3 +79,7 @@ On screens up to 760 px wide, selecting a calendar item opens its past review or
 ## Ten-year outlook
 
 `dist/long-term.js` scans annual Tajika returns and solar-month windows for ten years from the selected date. It uses the same multi-domain event rules and partial KP timing check as retrospective candidates, but excludes one-time firsts (marriage, graduation, first job, first child) because the app does not ask whether they already occurred. It selects at most eight major candidates, at most two per event type and one per solar year, then shows up to five leading headlines. These are unvalidated hypotheses; there is no guaranteed event or monthly quota. The user-selected residence is assumed constant for all future return charts. The older twelve-month theme engine remains in `dist/forecast.js` for calculation regression tests, but the UI no longer presents it.
+
+## Ranked life windows
+
+The shared calendar also shows up to five ranked windows each for formal partnership, a child joining the family, substantial income increase, and starting an independent business. `dist/windows.js` scans annual and solar-month Tajika return signals, ranks candidates within each type, and spaces selected windows at least eighteen months apart. Marriage windows are limited to ages 21–40. Rank labels compare this engine’s signals, not measured chances; categories may have fewer than five. Past user confirmations are never fed into ranking. The partial KP indicator is displayed but is not independent validation.
