@@ -93,3 +93,7 @@ Named profiles are saved under `vedik-profiles-v2` in localStorage. Save capture
 ## At-a-glance dashboard
 
 The dashboard summarizes the top marriage, income and business windows, and the annual year with the highest combined career and money signal. It does not assert a total number of children; it shows the number of selected child-related windows instead. Two yearly SVG line graphs plot relative annual return signals: career plus money, and workload plus home. The latter is a health-related theme label, not an actual health measure, diagnosis or medical forecast. Neither graph is a probability, rupee amount, or validated outcome. The SVG includes accessible labels and per-point values.
+
+## Known timing limitation
+
+The annual/monthly domain scorer is an editorial heuristic. It can entirely discard a real marriage when the annual relationship and home rows have no positive signal, and a real childbirth when fifth-house and home signals conflict. The partial KP module cannot rescue these cases because it lacks KP cuspal promise, KP ayanamsa and Placidus houses. Do not tune thresholds against one known biography and present the resulting dates as predictive validation. The marriage dashboard pill is explicitly labeled a timing hypothesis. Independent chart reference checks and out-of-sample retrospective benchmarks are required before describing event timing as reliable.
