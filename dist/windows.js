@@ -40,7 +40,7 @@ export function buildLifeWindows(input,A,{asOf=new Date(),location={lat:input.la
     const score=rows.flatMap(pair=>pair).reduce((n,r)=>n+r.positive-r.negative,0);
     const kp=kpTimingCheck(natal,type.id==='children'?'first-child':type.id==='income'?'career-leap':type.id==='business'?'venture-breakthrough':'marriage',new Date((+left+ +right)/2));
     if(score<2)continue;
-    all.push({id:`window-${type.id}-${year}-${month}`,type:type.id,label:type.label,title:type.title,detail:type.detail,age,score:score+kp.support,kp,start:left,end:right,era:future?'future':'past',evidence});
+    all.push({id:`window-${type.id}-${year}-${month}`,type:type.id,label:type.label,title:type.title,detail:type.detail,age,score:score+kp.support,kp,start:left,end:right,era:future?'future':'past',signalSummary:`Annual and monthly return signals in ${type.domains.join(' and ')}; KP timing ${kp.status}.`,evidence});
    }
   }
   onProgress({completed:year-first+1,total:last-first+1});

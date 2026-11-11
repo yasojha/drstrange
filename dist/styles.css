@@ -31,3 +31,11 @@
  #drawer-content .life-card,#drawer-content .month-card{margin:0;padding:20px;background:#faf8f1}
 }
 @media(prefers-reduced-motion:reduce){.mobile-detail[open]{transition:none;transform:none;opacity:1}}
+
+/* Ranked windows carry their own meaning; the orange forecast palette is reserved for cautions. */
+.calendar-month button.forecast-event.positive-window,.calendar-month button.forecast-event.ranked-window.positive-window{color:#24614a;border-top-color:#b3cdbd;background:#e7f2ea;border-radius:3px;padding:5px;margin-top:4px}
+.calendar-month button.forecast-event.historical-window{color:#355b76;border-top-color:#b9cedd;background:#e9f1f7;border-radius:3px;padding:5px;margin-top:4px}
+.calendar-month button.forecast-event.caution-window{color:#955537;background:#f7ede4;border-radius:3px;padding:5px;margin-top:4px}
+.calendar-month.has-forecast:not(.has-events){background:#edf2eb;border-color:#b9cdbb;color:#365d42}
+.calendar-month.has-events.has-forecast{background:linear-gradient(135deg,#e9eddf 50%,#edf2eb 50%)}
+.calendar-legend.caution{color:#955537}.calendar-legend.historical{color:#355b76}
