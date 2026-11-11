@@ -11,10 +11,12 @@ export function buildLongTermForecast(input,A,{start=new Date(),location={lat:in
  if(!Number.isFinite(+from)||from<birth||to.getUTCFullYear()>2100||!Number.isFinite(Number(location.lat))||!Number.isFinite(Number(location.lon)))throw Error('Choose a valid forecast start and residence.');
  const sun=natal.planets.find(p=>p.name==='Sun').longitude,firstYear=from.getUTCFullYear()-1,lastYear=to.getUTCFullYear();
  const returnAt=year=>{const near=new Date(birth);near.setUTCFullYear(year);return solarReturn(sun,near,A);};
- const candidates=[];
+ const candidates=[],annualSeries=[];
  for(let year=firstYear;year<=lastYear;year++){
   const annualStart=returnAt(year),annualEnd=returnAt(year+1);if(annualEnd<=from||annualStart>=to)continue;
   const age=year-birth.getUTCFullYear(),annual=chartAt(annualStart,location.lat,location.lon,A),muntha=munthaLongitude(natal.ascendant,age),annualSignals=chartSignals(annual,muntha);
+  const net=id=>{const row=annualSignals.find(r=>r.id===id);return row?row.positive-row.negative:0;};
+  annualSeries.push({year,from:annualStart,to:annualEnd,income:net('career')+net('money'),wellbeing:net('workload')+net('home')});
   const boundaries=[annualStart];for(let m=1;m<12;m++)boundaries.push(solarReturn(wrap(sun+30*m),new Date(+annualStart+m*365.25636/12*DAY),A));boundaries.push(annualEnd);
   const best=new Map();
   for(let month=0;month<12;month++){
@@ -35,5 +37,5 @@ export function buildLongTermForecast(input,A,{start=new Date(),location={lat:in
  const chosen=[];for(const event of ranked){if(chosen.length>=8)break;if(chosen.filter(e=>e.ruleId===event.ruleId).length>=2)continue;if(chosen.some(e=>e.annualYear===event.annualYear))continue;chosen.push(event);}
  const events=chosen.sort((a,b)=>+a.start-+b.start);
  const headlines=[...events].sort((a,b)=>b.score-a.score).slice(0,5);
- return {version:'long-term-major-1',from,to,events,headlines,candidateCount:candidates.length,location:{lat:Number(location.lat),lon:Number(location.lon)},limits:['Selected turning-point hypotheses, not a monthly prediction or factual promise','Windows are approximate solar months, not exact event dates','KP timing is partial; no independent predictive validation','Residence is held fixed across ten years','One-time milestones are excluded when prior life status is unknown']};
+ return {version:'long-term-major-1',from,to,events,headlines,annualSeries,candidateCount:candidates.length,location:{lat:Number(location.lat),lon:Number(location.lon)},limits:['Selected turning-point hypotheses, not a monthly prediction or factual promise','Windows are approximate solar months, not exact event dates','KP timing is partial; no independent predictive validation','Residence is held fixed across ten years','One-time milestones are excluded when prior life status is unknown']};
 }

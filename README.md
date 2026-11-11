@@ -89,3 +89,7 @@ The four ranked window types are retrospective hypotheses and can miss known eve
 ## Browser profiles
 
 Named profiles are saved under `vedik-profiles-v2` in localStorage. Save captures birth details, city/custom coordinates, UTC offset, and the selected return-chart residence. Load restores the whole form and submits it to recalculate. Profiles can be switched or deleted. The previous single-profile key migrates to `My profile` on the same browser. Browser storage is device- and origin-specific; profiles are not synced or sent to a server.
+
+## At-a-glance dashboard
+
+The dashboard summarizes the top marriage, income and business windows, and the annual year with the highest combined career and money signal. It does not assert a total number of children; it shows the number of selected child-related windows instead. Two yearly SVG line graphs plot relative annual return signals: career plus money, and workload plus home. The latter is a health-related theme label, not an actual health measure, diagnosis or medical forecast. Neither graph is a probability, rupee amount, or validated outcome. The SVG includes accessible labels and per-point values.

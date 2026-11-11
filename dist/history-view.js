@@ -1,5 +1,6 @@
 import {reviewSummary} from './history.js';
 import {calendarBounds} from './timeline.js';
+import {buildDashboard,lineChart} from './dashboard.js';
 const $=s=>document.querySelector(s);
 const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const date=d=>new Date(d).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'});
@@ -12,7 +13,7 @@ export function startLifeHistory(input,example,location){
  const today=new Date(),key=JSON.stringify([input.date,input.time,input.offset,input.lat,input.lon,today.toISOString().slice(0,10),input.forecastStart,location]);isExample=example;
  if(key===identity&&report){render();return;}
  worker?.terminate();worker=null;report=null;futureReport=null;windowsReport=null;reviews={};selected=null;identity=key;
- $('#headlines').innerHTML='';$('#forecast-range').textContent='';
+ $('#headlines').innerHTML='';$('#forecast-range').textContent='';$('#insight-dashboard').hidden=true;
  $('#life-content').hidden=true;$('#life-progress').hidden=false;$('#life-progress').textContent='Calculating your timeline…';$('#life-export').disabled=true;
  try{
  worker=new Worker(new URL('./history-worker.js',import.meta.url),{type:'module'});const active=worker;
@@ -66,7 +67,22 @@ function render(){
  if(futureEvent)renderFuture(futureEvent);
  else $('#future-detail').hidden=true;
  $('#timeline-prompt').hidden=selected!==null;
- renderHeadlines();updateSummary();drawCalendar();
+ renderDashboard();renderHeadlines();updateSummary();drawCalendar();
+}
+function renderDashboard(){
+ if(!futureReport||!windowsReport)return;
+ const summary=buildDashboard(futureReport,windowsReport),pill=(label,value,detail)=>`<div class="dashboard-pill"><span>${escape(label)}</span><strong>${escape(value)}</strong><small>${escape(detail)}</small></div>`;
+ const year=e=>new Date(e.start).getUTCFullYear();
+ $('#dashboard-pills').innerHTML=[
+  pill('Total children','Cannot determine','Child-related windows: '+summary.children.length),
+  pill('Top marriage window',summary.marriage?String(year(summary.marriage)):'No selected window',summary.marriage?`${date(summary.marriage.start)} – ${date(new Date(+summary.marriage.end-1))}`:'The current rules found none'),
+  pill('Career stability theme',summary.stability?String(summary.stability.year):'No signal','Highest combined career and money return'),
+  pill('Income rise window',summary.income?String(year(summary.income)):'No selected window',summary.income?'Top-ranked window in its category':'The current rules found none'),
+  pill('Business start window',summary.business?String(year(summary.business)):'No selected window',summary.business?'Top-ranked window in its category':'The current rules found none')
+ ].join('');
+ $('#income-chart').innerHTML=lineChart(summary.series,'income','Income opportunity signal');
+ $('#health-chart').innerHTML=lineChart(summary.series,'wellbeing','Health theme signal');
+ $('#insight-dashboard').hidden=false;
 }
 function renderHeadlines(){
  if(!futureReport)return;
