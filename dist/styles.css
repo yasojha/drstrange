@@ -43,3 +43,11 @@
 .profile-controls{display:grid;gap:8px;margin:14px 0;padding:14px;background:#f5f5ec;border:1px solid var(--line);border-radius:5px}.profile-controls label{margin:0}.profile-controls .text-button{text-align:left}.profile-controls .small{margin:0}
 
 .insight-dashboard{padding:58px 0 15px}.insight-dashboard .reading-heading h2{font:40px/1.2 Georgia,serif;margin:12px 0}.dashboard-pills{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin:20px 0}.dashboard-pill{display:flex;flex-direction:column;gap:8px;padding:17px;background:#faf8f1;border:1px solid var(--line);border-radius:7px;min-height:125px}.dashboard-pill span{font-size:10px;color:#798071}.dashboard-pill strong{font:23px Georgia,serif;color:#344e3e}.dashboard-pill small{color:#737a70;font-size:10px;line-height:1.5}.dashboard-graphs{display:grid;grid-template-columns:1fr 1fr;gap:16px}.dashboard-graphs article{background:#faf8f1;border:1px solid var(--line);border-radius:7px;padding:20px;min-width:0}.dashboard-graphs h3{font:19px Georgia,serif;margin:0 0 12px}.signal-chart{overflow-x:auto}.signal-chart svg{display:block;width:100%;min-width:450px}@media(max-width:760px){.insight-dashboard{padding-top:35px}.dashboard-graphs{grid-template-columns:1fr}}
+
+.family-check{margin:34px 0 0;padding:clamp(16px,4vw,30px);background:#faf8f1;border:1px solid var(--line);border-radius:7px}
+.family-check h2{font:28px Georgia,serif;margin:0 0 10px}
+.family-check p{color:var(--muted);font-size:12px;line-height:1.65}
+.family-check form{max-width:620px;margin:12px 0}
+.family-check input{width:5.5em;max-width:100%;padding:5px}
+.family-check .text-button{margin-top:14px;font-weight:700}
+.family-check details a{text-decoration:underline}

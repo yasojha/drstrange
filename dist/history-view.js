@@ -74,7 +74,7 @@ function renderDashboard(){
  const summary=buildDashboard(futureReport,windowsReport),pill=(label,value,detail)=>`<div class="dashboard-pill"><span>${escape(label)}</span><strong>${escape(value)}</strong><small>${escape(detail)}</small></div>`;
  const year=e=>new Date(e.start).getUTCFullYear();
  $('#dashboard-pills').innerHTML=[
-  pill('Total children','Cannot determine','Child-related windows: '+summary.children.length),
+  pill('Child-related windows',String(summary.children.length),'Ranked timing windows'),
   pill('Marriage timing hypothesis',summary.marriage?String(year(summary.marriage)):'No selected window',summary.marriage?`${date(summary.marriage.start)} – ${date(new Date(+summary.marriage.end-1))} · unvalidated`:'The current rules found none'),
   pill('Career stability theme',summary.stability?String(summary.stability.year):'No signal','Highest combined career and money return'),
   pill('Income rise window',summary.income?String(year(summary.income)):'No selected window',summary.income?'Top-ranked window in its category':'The current rules found none'),

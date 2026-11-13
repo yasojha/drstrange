@@ -1,6 +1,7 @@
 import {setupLocations} from './locations.js';
 import {calculate,SIGNS} from './engine.js';
 import {startLifeHistory} from './history-view.js';
+import {renderFamilyCheck} from './family-view.js';
 const $=s=>document.querySelector(s),form=$('#birth-form');
 setupLocations(form);
 let chart,example=true,selected=1;
@@ -21,7 +22,7 @@ function update(isExample){
  const date=new Date(input.date+'T12:00:00Z').toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric',timeZone:'UTC'});
  $('#chart-subtitle').textContent=`${isExample?'Example chart · ':''}${date}, ${input.time} · ${input.city==='custom'?`${input.lat}°, ${input.lon}°`:$('#city').selectedOptions[0].textContent}`;
  const moon=chart.planets.find(p=>p.name==='Moon');$('#chart-stats').innerHTML=[['RISING SIGN',SIGNS[chart.ascSign]],['MOON SIGN',SIGNS[moon.sign]],['BIRTH STAR',chart.nakshatra]].map(([k,v])=>`<div class="stat"><span>${k}</span><strong>${v}</strong></div>`).join('');
- $('#planet-table').innerHTML=chart.planets.map(p=>`<tr><td>${p.name}</td><td>${SIGNS[p.sign]}</td><td>${p.degree.toFixed(2)}°</td><td>${p.house}</td></tr>`).join('');drawChart();showHouse();startLifeHistory(input,isExample,location);
+ $('#planet-table').innerHTML=chart.planets.map(p=>`<tr><td>${p.name}</td><td>${SIGNS[p.sign]}</td><td>${p.degree.toFixed(2)}°</td><td>${p.house}</td></tr>`).join('');drawChart();showHouse();renderFamilyCheck(chart,JSON.stringify([isExample,input.name,chart.date,input.lat,input.lon]));startLifeHistory(input,isExample,location);
 }
 $('#return-location').addEventListener('change',()=>{const custom=$('#return-location').value==='custom';$('#return-coordinates').hidden=!custom;form.elements.returnLat.required=custom;form.elements.returnLon.required=custom;});
 form.addEventListener('submit',e=>{e.preventDefault();try{update(false);$('#form-error').textContent='';if(innerWidth<760)$('#chart-title').scrollIntoView({behavior:'smooth',block:'start'});}catch(e){$('#form-error').textContent=e.message;}});
