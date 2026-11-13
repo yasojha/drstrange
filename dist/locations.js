@@ -1,4 +1,4 @@
-import {readProfiles,captureProfile,saveProfile,deleteProfile} from './profiles.js';
+import {readProfiles,captureProfile,saveProfile,deleteProfile,readPresetProfiles} from './profiles.js';
 // Coordinates are city centres, not hospital-level positions.
 export const places = [
  ['Delhi','New Delhi','Delhi',28.6139,77.209],
@@ -41,36 +41,61 @@ export function setupLocations(form) {
  city.addEventListener('change',select);
  for(const key of ['lat','lon'])form.elements[key].addEventListener('input',()=>{city.value='custom';status.textContent='Custom birthplace coordinates. Check the UTC offset at birth.';});
  const selector=$('#profile-select'),profileName=$('#profile-name');
- const refresh=(preferred='')=>{
-  const profiles=readProfiles(localStorage),names=Object.keys(profiles).sort((a,b)=>a.localeCompare(b));
-  selector.replaceChildren(new Option(names.length?'Select a saved profile':'No saved profiles',''));
-  for(const name of names)selector.add(new Option(name,name));
-  if(preferred&&profiles[preferred])selector.value=preferred;
- };
- try{refresh();}catch{status.textContent='Profile storage is unavailable in this browser.';}
+ const loadButton=$('#use-my-details'), deleteButton=$('#delete-profile');
+ let presets={}, saved={};
+ function refresh(preferred=selector.value) {
+  try { saved=readProfiles(localStorage); } catch { saved={}; }
+  selector.replaceChildren(new Option('Select a profile',''));
+  for(const [source, profiles, label] of [['preset',presets,'Built-in profiles'],['saved',saved,'Saved on this browser']]){
+   const names=Object.keys(profiles).sort((a,b)=>a.localeCompare(b));
+   if(!names.length)continue;
+   const group=document.createElement('optgroup');
+   group.label=label;
+   for(const name of names)group.append(new Option(name,source+':'+name));
+   selector.append(group);
+  }
+  if([...selector.options].some(option=>option.value===preferred))selector.value=preferred;
+  updateProfileButtons();
+ }
+ function updateProfileButtons(){
+  loadButton.disabled=!selector.value;
+  deleteButton.disabled=!selector.value.startsWith('saved:');
+ }
+ selector.addEventListener('change',updateProfileButtons);
+ refresh();
+ readPresetProfiles().then(profiles=>{presets=profiles;refresh();});
  $('#save-my-details').addEventListener('click',()=>{
   if(!form.reportValidity())return;
-  const name=profileName.value.trim()||form.elements.name.value.trim()||selector.value;
-  try{saveProfile(localStorage,name,captureProfile(form));refresh(name);profileName.value=name;status.textContent=`Saved “${name}” on this device.`;}
-  catch(error){status.textContent=error.message==='Give this profile a name.'?error.message:'Could not save this profile. Check browser storage settings.';}
+  const name=profileName.value.trim()||form.elements.name.value.trim()||selector.selectedOptions[0]?.textContent;
+  if(!name||!profileName.value.trim()&&!form.elements.name.value.trim()&&!selector.value){
+   status.textContent='Give this profile a name.';
+   return;
+  }
+  try{saveProfile(localStorage,name,captureProfile(form));refresh('saved:'+name);profileName.value=name;status.textContent=`Saved “${name}” on this device.`;}
+  catch{status.textContent='Could not save this profile. Check browser storage settings.';}
  });
- $('#use-my-details').addEventListener('click',()=>{
-  const profile=readProfiles(localStorage)[selector.value];
-  if(!profile){status.textContent='Choose a saved profile first. Profiles saved in another browser or device are not available here.';return;}
+ loadButton.addEventListener('click',()=>{
+  const source=selector.value.startsWith('preset:')?presets:saved;
+  const name=selector.value.slice(selector.value.indexOf(':')+1);
+  if(!Object.hasOwn(source,name))return;
+  const profile=source[name];
   const place=places.find(p=>p[0]===profile.city);
   state.value=place?.[2]||'';render(place?.[0]||'custom');
-  for(const key of ['name','date','time','lat','lon','offset','returnLat','returnLon'])if(profile[key]!==undefined&&form.elements[key])form.elements[key].value=profile[key];
+  for(const key of ['name','gender','date','time','returnLat','returnLon'])form.elements[key].value=profile[key]??'';
+  form.elements.lat.value=profile.lat??place?.[3]??'';
+  form.elements.lon.value=profile.lon??place?.[4]??'';
+  form.elements.offset.value=profile.offset??(place?5.5:'');
   form.elements.returnLocation.value=profile.returnLocation==='custom'?'custom':'birth';
   $('#return-location').dispatchEvent(new Event('change'));
   $('#location-details').open=!place;
-  profileName.value=selector.value;
-  status.textContent=`Loaded “${selector.value}”. Calculating this profile now.`;
+  profileName.value=name;
+  status.textContent=`Loaded “${name}”. Calculating this profile now.`;
   form.requestSubmit();
  });
- $('#delete-profile').addEventListener('click',()=>{
-  if(!selector.value){status.textContent='Choose a saved profile to delete.';return;}
-  const name=selector.value;
-  try{deleteProfile(localStorage,name);refresh();profileName.value='';status.textContent=`Deleted “${name}” from this device.`;}
+ deleteButton.addEventListener('click',()=>{
+  if(!selector.value.startsWith('saved:'))return;
+  const name=selector.value.slice('saved:'.length);
+  try{deleteProfile(localStorage,name);refresh('');profileName.value='';status.textContent=`Deleted “${name}” from this device.`;}
   catch{status.textContent='Could not delete this profile. Check browser storage settings.';}
  });
  $('#use-current-location').addEventListener('click',()=>{

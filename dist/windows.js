@@ -1,6 +1,7 @@
 import {calculate,chartAt,wrap} from './engine.js';
 import {solarReturn,munthaLongitude,chartSignals} from './forecast.js';
 import {kpTimingCheck} from './kp.js';
+import {travelEvidence, travelSignals, selectTravelWindows, travelTypes} from './travel.js';
 const DAY=86400000;
 const types=[
  {id:'marriage',label:'Marriage window',minAge:21,maxAge:40,domains:['relationships','home'],title:'A formal partnership has stronger support.',detail:'This period favors a major commitment or change in a formal partnership. It does not establish that a wedding will occur.'},
@@ -20,17 +21,29 @@ export function rankWindows(candidates,limit=5){
 export function buildLifeWindows(input,A,{asOf=new Date(),location={lat:input.lat,lon:input.lon},horizonYears=10,onProgress=()=>{}}={}){
  const natal=calculate(input,A),birth=new Date(natal.date),today=new Date(asOf),to=new Date(Date.UTC(today.getUTCFullYear()+horizonYears,today.getUTCMonth(),today.getUTCDate()));
  if(!Number.isFinite(+today)||today<birth||to.getUTCFullYear()>2100)throw Error('Invalid window horizon.');
- const sun=natal.planets.find(p=>p.name==='Sun').longitude,first=birth.getUTCFullYear()+18,last=to.getUTCFullYear(),all=[];
+ const sun=natal.planets.find(p=>p.name==='Sun').longitude,first=Math.max(birth.getUTCFullYear(),Math.min(birth.getUTCFullYear()+12,today.getUTCFullYear()-1)),last=to.getUTCFullYear(),all=[],travel=[];
  const returnAt=year=>{const d=new Date(birth);d.setUTCFullYear(year);return solarReturn(sun,d,A);};
  for(let year=first;year<=last;year++){
   const start=returnAt(year),end=returnAt(year+1);if(start>=to)break;
   const age=year-birth.getUTCFullYear(),past=end<=today,lat=past?input.lat:location.lat,lon=past?input.lon:location.lon;
-  const annual=chartSignals(chartAt(start,lat,lon,A),munthaLongitude(natal.ascendant,age));
+  const annualChart=chartAt(start,lat,lon,A),muntha=munthaLongitude(natal.ascendant,age);
+  const annual=chartSignals(annualChart,muntha);
+  const annualTravel=travelEvidence(annualChart,muntha);
+  const sameLocation=Number(input.lat)===Number(lat)&&Number(input.lon)===Number(lon);
+  const pastAnnualTravel=!past&&!sameLocation&&start<today?travelEvidence(chartAt(start,input.lat,input.lon,A),muntha):annualTravel;
   const bounds=[start];for(let m=1;m<12;m++)bounds.push(solarReturn(wrap(sun+30*m),new Date(+start+m*365.25636/12*DAY),A));bounds.push(end);
   for(let month=0;month<12;month++){
-   const left=bounds[month],right=bounds[month+1];if(left>=to||right>today&&left<today)continue;
+   const left=bounds[month],right=bounds[month+1];if(left<birth||left>=to||right>today&&left<today)continue;
    const future=left>=today;if(!future&&right>today)continue;
-   const monthly=chartSignals(chartAt(left,lat,lon,A));
+   const monthlyChart=chartAt(left,lat,lon,A);
+   if(future||age>=12){
+    const travelChart=!future&&!sameLocation?chartAt(left,input.lat,input.lon,A):monthlyChart;
+    for(const signal of travelSignals(future?annualTravel:pastAnnualTravel,travelEvidence(travelChart))){
+     travel.push({...signal,id:`window-${signal.type}-${year}-${month}`,age,start:left,end:new Date(Math.min(+right,+to)),era:future?'future':'past'});
+    }
+   }
+   if(age<18)continue;
+   const monthly=chartSignals(monthlyChart);
    for(const type of types){
     if(age<type.minAge||age>type.maxAge)continue;
     const rows=type.domains.map(id=>[annual.find(r=>r.id===id),monthly.find(r=>r.id===id)]);
@@ -46,5 +59,6 @@ export function buildLifeWindows(input,A,{asOf=new Date(),location={lat:input.la
   onProgress({completed:year-first+1,total:last-first+1});
  }
  const groups=Object.fromEntries(types.map(t=>[t.id,rankWindows(all.filter(e=>e.type===t.id))]));
- return {version:'life-windows-1',asOf:today,to,groups,events:Object.values(groups).flat().sort((a,b)=>+a.start-+b.start),limits:['Rank is relative signal strength, not a probability','Up to five per type; empty categories remain empty','Past locations use birthplace; future residence is held fixed','These signals do not establish marriage, conception, birth, income or business outcomes']};
+ const travelGroups=Object.fromEntries(travelTypes.map(({id})=>[id,selectTravelWindows(travel.filter(event=>event.type===id))]));
+ return {version:'life-windows-2',asOf:today,to,groups,travelGroups,events:[...Object.values(groups).flat(),...Object.values(travelGroups).flat()].sort((a,b)=>+a.start-+b.start),limits:['Rank is relative signal strength, not a probability','Up to five ranked life windows per type, plus up to two travel windows per strength and era','Past locations use birthplace; future residence is held fixed','These signals do not establish marriage, conception, birth, income or business outcomes']};
 }

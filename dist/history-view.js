@@ -51,7 +51,7 @@ function drawCalendar(){
    if(year===first&&m<firstMonth||year===last&&m>lastMonth)return [];
    const events=byMonth.get(`${year}-${m}`)||[],future=futureEvents.get(`${year}-${m}`)||[];
    if(!events.length&&!future.length)return [];
-   return [`<div class="calendar-month ${events.length?'has-events':''} ${future.length?'has-forecast':''}"><span>${name}</span>${events.map(e=>`<button type="button" class="past-event ${selected===e.id?'active':''}" data-event="${e.id}" aria-label="Past candidate: ${escape(e.label)}, ${escape(range(e))}, ${escape(states[status(e)]||'Not reviewed')}" title="${escape(e.title)} · ${escape(range(e))}">${escape(e.label)}<small>${escape(range(e))}</small></button>`).join('')}${future.map(event=>`<button type="button" class="forecast-event ${event.rank?'ranked-window':''} ${event.era==='past'?'historical-window':event.kind==='watch'?'caution-window':'positive-window'} ${selected===event.id?'active':''}" data-future="${escape(event.id)}" aria-label="${event.era==='past'?'Past window':'Future candidate'}: ${escape(event.label)}, ${escape(range(event))}">${escape(event.label)}${event.rank?` · #${event.rank} ${escape(event.strength)}`:''}<small>${escape(range(event))}</small></button>`).join('')}</div>`];
+   return [`<div class="calendar-month ${events.length?'has-events':''} ${future.length?'has-forecast':''}"><span>${name}</span>${events.map(e=>`<button type="button" class="past-event ${selected===e.id?'active':''}" data-event="${e.id}" aria-label="Past candidate: ${escape(e.label)}, ${escape(range(e))}, ${escape(states[status(e)]||'Not reviewed')}" title="${escape(e.title)} · ${escape(range(e))}">${escape(e.label)}<small>${escape(range(e))}</small></button>`).join('')}${future.map(event=>`<button type="button" class="forecast-event ${event.rank?'ranked-window':''} ${event.era==='past'?'historical-window':event.kind==='watch'?'caution-window':'positive-window'} ${selected===event.id?'active':''}" data-future="${escape(event.id)}" aria-label="${event.era==='past'?'Past window':'Future candidate'}: ${escape(event.label)}, ${escape(range(event))}">${escape(event.label)}${event.rank?` · #${event.rank} ${escape(event.strength)}`:event.strength?` · ${escape(event.strength)}`:''}<small>${escape(range(event))}</small></button>`).join('')}</div>`];
   });
   return months.length?`<div class="calendar-year"><strong>${year}</strong><div class="calendar-months">${months.join('')}</div></div>`:'';
  }).join('');
@@ -59,7 +59,7 @@ function drawCalendar(){
 }
 
 function render(){
- $('#life-count-title').textContent=`Your timeline · ${report.events.length} past candidates, ${futureReport?.events.length||0} future turning points, ${windowsReport?.events.length||0} ranked life windows.`;
+ $('#life-count-title').textContent=`Your timeline · ${report.events.length} past candidates, ${futureReport?.events.length||0} future turning points, ${windowsReport?.events.length||0} life and travel windows.`;
  $('#life-note').textContent=`${isExample?'Example profile · ':''}Major past and next-ten-year candidates in one calendar. Dates are approximate windows, not exact event days.`;
  $('#life-shortfall').textContent=report.events.length<10?'The top ten distinct claims are shown when available. Exploratory entries have weaker support; mark them as misses if they did not happen.':'';
  $('#life-cards').innerHTML=report.events.map((e,i)=>`<article class="life-card ${selected===e.id?'selected':''}" id="life-card-${e.id}" data-card="${e.id}" ${selected===e.id?'':'hidden'}><div class="life-card-top"><span class="event-number">${String(i+1).padStart(2,'0')}</span><span class="eyebrow">${escape(e.label)} · AGE ${e.age}</span><span class="review-badge" data-badge="${e.id}">${states[status(e)]||'Not reviewed'}</span></div><p class="life-date">${escape(range(e))} · ${e.tier==='stronger'?'Stronger Tajika match':'Exploratory Tajika match'}</p><p class="kp-status">KP timing (partial): ${e.kp.status==='supports'?'supports this event type':e.kp.status==='mixed'?'mixed':'no support'} · ${e.kp.period.maha}/${e.kp.period.bhukti}</p><h3>${escape(e.title)}</h3><p>${escape(e.detail)}</p><div class="match-definition"><strong>Match criteria</strong><p>${escape(e.check)} The event must fall inside the dates above.</p></div><fieldset class="review-options"><legend>Did this happen?</legend>${Object.entries(states).map(([value,label])=>`<button type="button" data-verdict="${value}" data-id="${e.id}" aria-pressed="${status(e)===value}">${label}</button>`).join('')}<button type="button" data-clear="${e.id}" class="clear-review">Clear</button></fieldset><label class="event-note-label">What actually happened? <span>optional, kept in this tab</span><textarea data-note="${e.id}" maxlength="1000" rows="2" placeholder="Event, approximate date, and what matched or did not match">${escape(reviews[e.id]?.note||'')}</textarea></label></article>`).join('');
@@ -92,6 +92,10 @@ function renderHeadlines(){
 }
 function renderFuture(event){
  const detail=$('#future-detail');detail.hidden=false;
+ if(!event.kp){
+  detail.innerHTML=`<article class="month-card"><span class="eyebrow">${escape(event.strength)} · ${event.era==='past'?'Past window':'Future window'}</span><h3>${escape(event.title)}</h3><p class="month-date">${escape(range(event))}</p><p>${escape(event.detail)} Signal strength describes agreement between charts.</p><ul>${event.evidence.map(item=>`<li>${escape(item)}</li>`).join('')}</ul></article>`;
+  return;
+ }
  detail.innerHTML=`<article class="month-card"><div class="month-top"><span class="eyebrow">${escape(event.label)} · ${event.rank?`#${event.rank} · ${escape(event.strength)} relative signal`:event.tier==='stronger'?'Stronger Tajika match':'Exploratory Tajika match'}</span></div><h3>${escape(event.title)}</h3><p class="month-date">${escape(range(event))}</p><p>${escape(event.detail)}</p><p class="kp-status">KP timing (partial): ${event.kp.status==='supports'?'supports this event type':event.kp.status==='mixed'?'mixed':'no supporting period'} · ${escape(event.kp.period.maha)}/${escape(event.kp.period.bhukti)}</p><div class="match-definition"><strong>What this would mean</strong><p>${escape(event.check||'This is a relative astrological window, not a confirmed outcome or exact date.')}</p></div>${event.rank?`<p class="kp-status">Rank ${event.rank} within ${escape(event.label.toLowerCase())} · ${event.era==='past'?'Past hypothesis':'Future hypothesis'} · Relative signal ${event.score.toFixed(1)}. ${escape(event.signalSummary||'')}</p>`:''}</article>`;
 }
 function revealSelection(target){
@@ -107,7 +111,7 @@ function openDrawer(detail,target){
  const dialog=$('#mobile-detail');
  clearTimeout(drawerTimer);
  if(!dialog.open){drawerScroll=window.scrollY;dialog.showModal();}
- $('#drawer-title').textContent=target==='past'?'Past prediction':'Future turning point';
+ $('#drawer-title').textContent=target==='past'?'Past prediction':'Calendar window';
  const article=detail.matches('article')?detail:detail.querySelector('article');
  if(!article)return;
  $('#drawer-content').replaceChildren(article.cloneNode(true));
@@ -146,4 +150,4 @@ function reviewInput(e){if(!e.target.matches('[data-note]'))return;const id=e.ta
 for(const container of [$('#life-cards'),$('#drawer-content')]){container.addEventListener('click',reviewClick);container.addEventListener('input',reviewInput);}
 $('#life-export').addEventListener('click',()=>{if(!report)return;const output={...report,exportedAt:new Date().toISOString(),reviews,summary:reviewSummary(report.events,reviews)};const url=URL.createObjectURL(new Blob([JSON.stringify(output,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='vedik-life-review.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
 
-$('#audit-download').addEventListener('click',()=>{if(!futureReport)return;const url=URL.createObjectURL(new Blob([JSON.stringify(futureReport,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='vedik-ten-year-calculations.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
+$('#audit-download').addEventListener('click',()=>{if(!futureReport)return;const url=URL.createObjectURL(new Blob([JSON.stringify({...futureReport,lifeWindows:windowsReport},null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='vedik-ten-year-calculations.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});

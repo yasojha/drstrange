@@ -10,6 +10,13 @@ test('four event types have up to five ranked nonoverlapping windows',()=>{
   for(const e of events){assert.equal(e.type,type);assert.ok(+e.start<+e.end);assert.ok(e.evidence.length>=2);if(type==='marriage')assert.ok(e.age>=21&&e.age<=40);}
  }
 });
+test('travel groups appear on the shared calendar with both strengths',()=>{
+ for(const type of ['foreign-travel','domestic-travel']){
+  const windows=report.travelGroups[type];
+  assert.deepEqual(new Set(windows.map(event=>event.strength)),new Set(['Strong','Mild']));
+  assert.ok(windows.every(event=>report.events.includes(event)&&event.end<=report.to));
+ }
+});
 test('ranker does not invent windows to fill a quota',()=>{assert.deepEqual(rankWindows([]),[]);});
 test('known life events and names do not alter calculated windows',()=>{
  const again=buildLifeWindows({...input,name:'Different',marriageDate:'2015-01',childBirth:'2020-01'},A,{asOf:new Date('2026-11-11Z')});
