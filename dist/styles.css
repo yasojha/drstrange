@@ -51,3 +51,7 @@
 .family-check input{width:5.5em;max-width:100%;padding:5px}
 .family-check .text-button{margin-top:14px;font-weight:700}
 .family-check details a{text-decoration:underline}
+
+.birth-details{border:0;min-width:0;margin:0;padding:0}
+.birth-details legend{font-weight:700;margin-bottom:12px}
+.birth-details:disabled input,.birth-details:disabled select{background:#ebece3;color:#515b50;opacity:1}

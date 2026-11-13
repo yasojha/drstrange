@@ -22,7 +22,7 @@ export const places = [
  ['Patna','Patna','Bihar',25.5941,85.1376],
  ['Kochi','Kochi','Kerala',9.9312,76.2673]
 ];
-export function setupLocations(form) {
+export function setupLocations(form, onProfileSelected) {
  const $=s=>document.querySelector(s), city=$('#city'), state=$('#birth-state'), status=$('#location-status');
  for(const name of [...new Set(places.map(p=>p[2]))].sort()) state.add(new Option(name,name));
  function render(preferred='') {
@@ -41,11 +41,13 @@ export function setupLocations(form) {
  city.addEventListener('change',select);
  for(const key of ['lat','lon'])form.elements[key].addEventListener('input',()=>{city.value='custom';status.textContent='Custom birthplace coordinates. Check the UTC offset at birth.';});
  const selector=$('#profile-select'),profileName=$('#profile-name');
- const loadButton=$('#use-my-details'), deleteButton=$('#delete-profile');
+ const details=$('#birth-details'), editButton=$('#edit-birth-details');
+ const deleteButton=$('#delete-profile'), locationButton=$('#use-current-location');
+ let locationRequest=0;
  let presets={}, saved={};
  function refresh(preferred=selector.value) {
   try { saved=readProfiles(localStorage); } catch { saved={}; }
-  selector.replaceChildren(new Option('Select a profile',''));
+  selector.replaceChildren(new Option('Enter details manually',''));
   for(const [source, profiles, label] of [['preset',presets,'Built-in profiles'],['saved',saved,'Saved on this browser']]){
    const names=Object.keys(profiles).sort((a,b)=>a.localeCompare(b));
    if(!names.length)continue;
@@ -58,10 +60,14 @@ export function setupLocations(form) {
   updateProfileButtons();
  }
  function updateProfileButtons(){
-  loadButton.disabled=!selector.value;
   deleteButton.disabled=!selector.value.startsWith('saved:');
  }
- selector.addEventListener('change',updateProfileButtons);
+ selector.addEventListener('change',applySelectedProfile);
+ editButton.addEventListener('click',()=>{
+  selector.value='';
+  applySelectedProfile();
+  form.elements.name.focus();
+ });
  refresh();
  readPresetProfiles().then(profiles=>{presets=profiles;refresh();});
  $('#save-my-details').addEventListener('click',()=>{
@@ -71,10 +77,22 @@ export function setupLocations(form) {
    status.textContent='Give this profile a name.';
    return;
   }
-  try{saveProfile(localStorage,name,captureProfile(form));refresh('saved:'+name);profileName.value=name;status.textContent=`Saved “${name}” on this device.`;}
+  try{saveProfile(localStorage,name,captureProfile(form));refresh('saved:'+name);profileName.value=name;lockDetails(true);status.textContent=`Saved “${name}” on this device.`;}
   catch{status.textContent='Could not save this profile. Check browser storage settings.';}
  });
- loadButton.addEventListener('click',()=>{
+ function lockDetails(locked){
+  details.disabled=locked;
+  editButton.hidden=!locked;
+ }
+ function applySelectedProfile(){
+  ++locationRequest;
+  locationButton.disabled=false;
+  lockDetails(false);
+  updateProfileButtons();
+  if(!selector.value){
+   status.textContent='You can edit the birth details below.';
+   return;
+  }
   const source=selector.value.startsWith('preset:')?presets:saved;
   const name=selector.value.slice(selector.value.indexOf(':')+1);
   if(!Object.hasOwn(source,name))return;
@@ -89,24 +107,30 @@ export function setupLocations(form) {
   $('#return-location').dispatchEvent(new Event('change'));
   $('#location-details').open=!place;
   profileName.value=name;
-  status.textContent=`Loaded “${name}”. Calculating this profile now.`;
-  form.requestSubmit();
- });
+  if([...details.elements].some(control=>control.validity&&!control.validity.valid)){
+   status.textContent=`Loaded “${name}”. Complete the birth details below.`;
+   return;
+  }
+  lockDetails(true);
+  status.textContent=`Loaded “${name}”. Birth details are locked.`;
+  onProfileSelected();
+ }
  deleteButton.addEventListener('click',()=>{
   if(!selector.value.startsWith('saved:'))return;
   const name=selector.value.slice('saved:'.length);
-  try{deleteProfile(localStorage,name);refresh('');profileName.value='';status.textContent=`Deleted “${name}” from this device.`;}
+  try{deleteProfile(localStorage,name);refresh('');profileName.value='';lockDetails(false);status.textContent=`Deleted “${name}” from this device.`;}
   catch{status.textContent='Could not delete this profile. Check browser storage settings.';}
  });
- $('#use-current-location').addEventListener('click',()=>{
+ locationButton.addEventListener('click',()=>{
   if(!navigator.geolocation){status.textContent='Location is unavailable in this browser. Select a city or enter coordinates.';return;}
-  const button=$('#use-current-location');button.disabled=true;status.textContent='Waiting for your location permission…';
+  const request=++locationRequest;locationButton.disabled=true;status.textContent='Waiting for your location permission…';
   navigator.geolocation.getCurrentPosition(position=>{
-   button.disabled=false;
+   if(request!==locationRequest)return;
+   locationButton.disabled=false;
    const {latitude,longitude,accuracy}=position.coords;
    if(Math.abs(latitude)>65){status.textContent='This chart engine supports latitudes from 65° south to 65° north. Your location is outside that range.';return;}
    state.value='';render('custom');form.elements.lat.value=latitude.toFixed(6);form.elements.lon.value=longitude.toFixed(6);$('#location-details').open=true;
    status.textContent=`Current position selected (approximately ${Math.round(accuracy)} m accuracy). Use it only if this is your birthplace. Check the UTC offset at birth; GPS does not provide historical time zones.`;
-  },error=>{button.disabled=false;status.textContent=error.code===1?'Location permission was denied. Select a city or enter coordinates instead.':'Could not get your location. Select a city or enter coordinates instead.';},{enableHighAccuracy:true,timeout:15000,maximumAge:0});
+  },error=>{if(request!==locationRequest)return;locationButton.disabled=false;status.textContent=error.code===1?'Location permission was denied. Select a city or enter coordinates instead.':'Could not get your location. Select a city or enter coordinates instead.';},{enableHighAccuracy:true,timeout:15000,maximumAge:0});
  });
 }
