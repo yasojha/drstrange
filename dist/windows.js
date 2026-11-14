@@ -39,7 +39,7 @@ export function buildLifeWindows(input,A,{asOf=new Date(),location={lat:input.la
    if(future||age>=12){
     const travelChart=!future&&!sameLocation?chartAt(left,input.lat,input.lon,A):monthlyChart;
     for(const signal of travelSignals(future?annualTravel:pastAnnualTravel,travelEvidence(travelChart))){
-     travel.push({...signal,id:`window-${signal.type}-${year}-${month}`,age,start:left,end:new Date(Math.min(+right,+to)),era:future?'future':'past'});
+     travel.push({...signal,id:`window-${signal.type}-${year}-${month}`,age,solarYear:year,start:left,end:new Date(Math.min(+right,+to)),era:future?'future':'past'});
     }
    }
    if(age<18)continue;
@@ -60,5 +60,5 @@ export function buildLifeWindows(input,A,{asOf=new Date(),location={lat:input.la
  }
  const groups=Object.fromEntries(types.map(t=>[t.id,rankWindows(all.filter(e=>e.type===t.id))]));
  const travelGroups=Object.fromEntries(travelTypes.map(({id})=>[id,selectTravelWindows(travel.filter(event=>event.type===id))]));
- return {version:'life-windows-2',asOf:today,to,groups,travelGroups,events:[...Object.values(groups).flat(),...Object.values(travelGroups).flat()].sort((a,b)=>+a.start-+b.start),limits:['Rank is relative signal strength, not a probability','Up to five ranked life windows per type, plus up to two travel windows per strength and era','Past locations use birthplace; future residence is held fixed','These signals do not establish marriage, conception, birth, income or business outcomes']};
+ return {version:'life-windows-3',asOf:today,to,groups,travelGroups,events:[...Object.values(groups).flat(),...Object.values(travelGroups).flat()].sort((a,b)=>+a.start-+b.start),limits:['Rank is relative signal strength, not a probability','Past foreign travel shows up to three windows per solar-return year. Other travel groups show up to two windows per strength and era.','Past locations use birthplace; future residence is held fixed','These signals do not establish marriage, conception, birth, income or business outcomes']};
 }

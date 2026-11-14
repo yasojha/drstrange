@@ -43,7 +43,7 @@ function drawCalendar(){
  const byMonth=new Map();
  for(const e of report.events){const midpoint=new Date((+new Date(e.start)+ +new Date(e.end))/2),key=`${midpoint.getUTCFullYear()}-${midpoint.getUTCMonth()}`;byMonth.set(key,[...(byMonth.get(key)||[]),e]);}
  const futureEvents=new Map();
- for(const event of [...(futureReport?.events||[]),...(windowsReport?.events||[])]){const midpoint=new Date((+new Date(event.start)+ +new Date(event.end))/2),key=`${midpoint.getUTCFullYear()}-${midpoint.getUTCMonth()}`;futureEvents.set(key,[...(futureEvents.get(key)||[]),event]);}
+ for(const event of [...(futureReport?.events||[]),...(windowsReport?.events||[])]){const marker=event.type==='foreign-travel'&&event.era==='past'?new Date(event.start):new Date((+new Date(event.start)+ +new Date(event.end))/2),key=`${marker.getUTCFullYear()}-${marker.getUTCMonth()}`;futureEvents.set(key,[...(futureEvents.get(key)||[]),event]);}
  const monthNames=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
  $('#life-timeline').innerHTML=Array.from({length:last-first+1},(_,i)=>{
   const year=first+i;
@@ -93,7 +93,7 @@ function renderHeadlines(){
 function renderFuture(event){
  const detail=$('#future-detail');detail.hidden=false;
  if(!event.kp){
-  detail.innerHTML=`<article class="month-card"><span class="eyebrow">${escape(event.strength)} · ${event.era==='past'?'Past window':'Future window'}</span><h3>${escape(event.title)}</h3><p class="month-date">${escape(range(event))}</p><p>${escape(event.detail)} Signal strength describes agreement between charts.</p><ul>${event.evidence.map(item=>`<li>${escape(item)}</li>`).join('')}</ul></article>`;
+  detail.innerHTML=`<article class="month-card"><span class="eyebrow">${escape(event.strength)} · ${event.era==='past'?'Past window':'Future window'}</span><h3>${escape(event.title)}</h3><p class="month-date">${escape(range(event))}</p><p>${escape(event.detail)} Signal strength describes agreement between charts. Evidence can come from different solar months in a combined window.</p><ul>${event.evidence.map(item=>`<li>${escape(item)}</li>`).join('')}</ul></article>`;
   return;
  }
  detail.innerHTML=`<article class="month-card"><div class="month-top"><span class="eyebrow">${escape(event.label)} · ${event.rank?`#${event.rank} · ${escape(event.strength)} relative signal`:event.tier==='stronger'?'Stronger Tajika match':'Exploratory Tajika match'}</span></div><h3>${escape(event.title)}</h3><p class="month-date">${escape(range(event))}</p><p>${escape(event.detail)}</p><p class="kp-status">KP timing (partial): ${event.kp.status==='supports'?'supports this event type':event.kp.status==='mixed'?'mixed':'no supporting period'} · ${escape(event.kp.period.maha)}/${escape(event.kp.period.bhukti)}</p><div class="match-definition"><strong>What this would mean</strong><p>${escape(event.check||'This is a relative astrological window, not a confirmed outcome or exact date.')}</p></div>${event.rank?`<p class="kp-status">Rank ${event.rank} within ${escape(event.label.toLowerCase())} · ${event.era==='past'?'Past hypothesis':'Future hypothesis'} · Relative signal ${event.score.toFixed(1)}. ${escape(event.signalSummary||'')}</p>`:''}</article>`;

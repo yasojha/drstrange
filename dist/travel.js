@@ -21,6 +21,12 @@ export function travelEvidence(chart, muntha) {
     if (lord && lord.name !== ascendantLord && lord.house === 1) {
       evidence.push(`${houseLord}, ruler of house ${house}, in the ascendant house`);
     }
+    // Annual Rahu can corroborate a foreign-travel theme. The solar-month
+    // chart must still supply independent evidence under the ordinary rules.
+    if (muntha !== undefined && house === 9 &&
+        chart.planets.some(planet => planet.name === 'Rahu' && planet.house === house)) {
+      evidence.push('Rahu in house 9 (supporting indicator)');
+    }
     if (muntha !== undefined && houseOf(muntha, chart.ascendant) === house) {
       evidence.push(`Muntha in house ${house}`);
     }
@@ -57,19 +63,48 @@ export function travelSignals(annual, monthly) {
   });
 }
 
+function mergeAdjacentWindows(candidates) {
+  const merged = [];
+  for (const event of [...candidates].sort((a, b) => +a.start - +b.start)) {
+    const previous = merged.at(-1);
+    if (previous && +previous.end === +event.start && previous.strength === event.strength) {
+      previous.end = event.end;
+      previous.score = Math.max(previous.score, event.score);
+      previous.evidence = [...new Set([...previous.evidence, ...event.evidence])];
+    } else {
+      merged.push({ ...event });
+    }
+  }
+  return merged;
+}
+
 export function selectTravelWindows(candidates) {
-  const chosen = [];
-  for (const strength of ['Strong', 'Mild']) {
-    for (const era of ['past', 'future']) {
-      const sorted = candidates.filter(event => event.strength === strength && event.era === era)
+  const buckets = new Map();
+  for (const event of candidates) {
+    const key = event.type === 'foreign-travel' && event.era === 'past'
+      ? `past-foreign-${event.solarYear}`
+      : event.era;
+    if (!buckets.has(key)) buckets.set(key, []);
+    buckets.get(key).push(event);
+  }
+
+  const selected = [];
+  for (const [key, events] of buckets) {
+    const historicalForeign = key.startsWith('past-foreign-');
+    const windows = historicalForeign ? mergeAdjacentWindows(events) : events;
+    const chosen = [];
+    for (const strength of ['Strong', 'Mild']) {
+      const sorted = windows.filter(event => event.strength === strength)
         .sort((a, b) => b.score - a.score || +a.start - +b.start);
       let count = 0;
       for (const event of sorted) {
+        if (historicalForeign && chosen.length === 3) break;
         if (chosen.some(existing => Math.abs(+event.start - +existing.start) < 60 * DAY)) continue;
         chosen.push(event);
-        if (++count === 2) break;
+        if (++count === (historicalForeign ? 3 : 2)) break;
       }
     }
+    selected.push(...chosen);
   }
-  return chosen.sort((a, b) => +a.start - +b.start);
+  return selected.sort((a, b) => +a.start - +b.start);
 }
