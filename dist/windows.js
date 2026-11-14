@@ -1,6 +1,7 @@
 import {calculate,chartAt,wrap} from './engine.js';
 import {solarReturn,munthaLongitude,chartSignals} from './forecast.js';
 import {kpTimingCheck} from './kp.js';
+import {milestoneEvidence, milestoneCandidates, selectMilestones} from './milestones.js';
 import {travelEvidence, travelSignals, selectTravelWindows, travelTypes} from './travel.js';
 const DAY=86400000;
 const types=[
@@ -21,7 +22,7 @@ export function rankWindows(candidates,limit=5){
 export function buildLifeWindows(input,A,{asOf=new Date(),location={lat:input.lat,lon:input.lon},horizonYears=10,onProgress=()=>{}}={}){
  const natal=calculate(input,A),birth=new Date(natal.date),today=new Date(asOf),to=new Date(Date.UTC(today.getUTCFullYear()+horizonYears,today.getUTCMonth(),today.getUTCDate()));
  if(!Number.isFinite(+today)||today<birth||to.getUTCFullYear()>2100)throw Error('Invalid window horizon.');
- const sun=natal.planets.find(p=>p.name==='Sun').longitude,first=Math.max(birth.getUTCFullYear(),Math.min(birth.getUTCFullYear()+12,today.getUTCFullYear()-1)),last=to.getUTCFullYear(),all=[],travel=[];
+ const sun=natal.planets.find(p=>p.name==='Sun').longitude,first=Math.max(birth.getUTCFullYear(),Math.min(birth.getUTCFullYear()+12,today.getUTCFullYear()-1)),last=to.getUTCFullYear(),all=[],travel=[],milestones=[];
  const returnAt=year=>{const d=new Date(birth);d.setUTCFullYear(year);return solarReturn(sun,d,A);};
  for(let year=first;year<=last;year++){
   const start=returnAt(year),end=returnAt(year+1);if(start>=to)break;
@@ -30,15 +31,22 @@ export function buildLifeWindows(input,A,{asOf=new Date(),location={lat:input.la
   const annual=chartSignals(annualChart,muntha);
   const annualTravel=travelEvidence(annualChart,muntha);
   const sameLocation=Number(input.lat)===Number(lat)&&Number(input.lon)===Number(lon);
-  const pastAnnualTravel=!past&&!sameLocation&&start<today?travelEvidence(chartAt(start,input.lat,input.lon,A),muntha):annualTravel;
+  const pastAnnualChart=!past&&!sameLocation&&start<today?chartAt(start,input.lat,input.lon,A):annualChart;
+  const pastAnnualTravel=pastAnnualChart===annualChart?annualTravel:travelEvidence(pastAnnualChart,muntha);
+  const annualMilestones=milestoneEvidence(annualChart,muntha);
+  const pastAnnualMilestones=pastAnnualChart===annualChart?annualMilestones:milestoneEvidence(pastAnnualChart,muntha);
   const bounds=[start];for(let m=1;m<12;m++)bounds.push(solarReturn(wrap(sun+30*m),new Date(+start+m*365.25636/12*DAY),A));bounds.push(end);
   for(let month=0;month<12;month++){
    const left=bounds[month],right=bounds[month+1];if(left<birth||left>=to||right>today&&left<today)continue;
    const future=left>=today;if(!future&&right>today)continue;
    const monthlyChart=chartAt(left,lat,lon,A);
    if(future||age>=12){
-    const travelChart=!future&&!sameLocation?chartAt(left,input.lat,input.lon,A):monthlyChart;
-    for(const signal of travelSignals(future?annualTravel:pastAnnualTravel,travelEvidence(travelChart))){
+    const returnChart=!future&&!sameLocation?chartAt(left,input.lat,input.lon,A):monthlyChart;
+    milestones.push(...milestoneCandidates({
+     natal, annual:future?annualMilestones:pastAnnualMilestones, monthly:milestoneEvidence(returnChart),
+     age, start:left, end:new Date(Math.min(+right,+to)), solarYear:year, solarMonth:month, era:future?'future':'past'
+    }));
+    for(const signal of travelSignals(future?annualTravel:pastAnnualTravel,travelEvidence(returnChart))){
      travel.push({...signal,id:`window-${signal.type}-${year}-${month}`,age,solarYear:year,start:left,end:new Date(Math.min(+right,+to)),era:future?'future':'past'});
     }
    }
@@ -60,5 +68,6 @@ export function buildLifeWindows(input,A,{asOf=new Date(),location={lat:input.la
  }
  const groups=Object.fromEntries(types.map(t=>[t.id,rankWindows(all.filter(e=>e.type===t.id))]));
  const travelGroups=Object.fromEntries(travelTypes.map(({id})=>[id,selectTravelWindows(travel.filter(event=>event.type===id))]));
- return {version:'life-windows-3',asOf:today,to,groups,travelGroups,events:[...Object.values(groups).flat(),...Object.values(travelGroups).flat()].sort((a,b)=>+a.start-+b.start),limits:['Rank is relative signal strength, not a probability','Past foreign travel shows up to three windows per solar-return year. Other travel groups show up to two windows per strength and era.','Past locations use birthplace; future residence is held fixed','These signals do not establish marriage, conception, birth, income or business outcomes']};
+ const milestoneGroups=selectMilestones(milestones);
+ return {version:'life-windows-4',asOf:today,to,groups,travelGroups,milestoneGroups,events:[...Object.values(groups).flat(),...Object.values(travelGroups).flat(),...Object.values(milestoneGroups).flat()].sort((a,b)=>+a.start-+b.start),limits:['Rank is relative signal strength, not a probability','Past foreign travel shows up to three windows per solar-return year. Other travel groups show up to two windows per strength and era.','Milestones show up to three past and three future windows per topic, one per solar-return year','Past locations use birthplace; future residence is held fixed','These signals do not establish marriage, conception, birth, income or business outcomes']};
 }

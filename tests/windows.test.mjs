@@ -22,3 +22,23 @@ test('known life events and names do not alter calculated windows',()=>{
  const again=buildLifeWindows({...input,name:'Different',marriageDate:'2015-01',childBirth:'2020-01'},A,{asOf:new Date('2026-11-11Z')});
  assert.deepEqual(again.events,report.events);
 });
+
+test('milestones reach the calendar with annual and monthly evidence and separate past and future limits', () => {
+ for (const type of ['home-property', 'recognition', 'education']) {
+  const events = report.milestoneGroups[type];
+  assert.ok(events.length > 0, type);
+  for (const era of ['past', 'future']) {
+   const selected = events.filter(event => event.era === era);
+   assert.ok(selected.length <= 3);
+   assert.equal(new Set(selected.map(event => event.solarYear)).size, selected.length);
+  }
+  for (const event of events) {
+   assert.ok(report.events.includes(event));
+   assert.ok(event.start < event.end && event.end <= report.to);
+   assert.ok(event.era === 'past' ? event.end <= report.asOf : event.start >= report.asOf);
+   assert.ok(event.evidence.some(item => item.startsWith('Annual: ')));
+   assert.ok(event.evidence.some(item => item.startsWith('Solar month: ')));
+   assert.ok(event.check && ['Strong', 'Mild'].includes(event.strength));
+  }
+ }
+});
