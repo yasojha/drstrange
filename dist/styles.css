@@ -55,3 +55,7 @@
 .birth-details{border:0;min-width:0;margin:0;padding:0}
 .birth-details legend{font-weight:700;margin-bottom:12px}
 .birth-details:disabled input,.birth-details:disabled select{background:#ebece3;color:#515b50;opacity:1}
+
+.family-breakdown{display:grid;grid-template-columns:max-content 1fr;gap:8px 12px;font-size:12px;line-height:1.5}
+.family-breakdown dt{font-weight:700}.family-breakdown dd{margin:0;color:var(--muted)}
+.family-check details+details{margin-top:10px}

@@ -45,7 +45,17 @@ function split(points) {
   const male = points.filter(name => ['Sun', 'Mars', 'Jupiter'].includes(name)).length;
   const female = points.filter(name => ['Moon', 'Venus'].includes(name)).length;
   const unassigned = points.length - male - female;
-  return { total: points.length, male: [male, male + unassigned], female: [female, female + unassigned] };
+  return {
+    total: points.length,
+    // Patel's split counts the male-planet points first and assigns the remainder to sisters.
+    estimate: { male, female: points.length - male },
+    male: [male, male + unassigned],
+    female: [female, female + unassigned],
+    alternatives: Array.from({ length: unassigned }, (_, index) => ({
+      male: male + index + 1,
+      female: points.length - male - index - 1
+    }))
+  };
 }
 
 export function buildFamilyReading(chart) {
@@ -77,15 +87,19 @@ export function checkFamilyCounts(reading, actual) {
     ['uncles', 'aunts', reading.relatives, 'Uncles and aunts']
   ]) {
     const a = actual[first], b = actual[second];
-    const inRange = (n, [min, max]) => n >= min && n <= max;
-    if (a !== undefined && b !== undefined) {
-      const match = inRange(a, estimate.male) && inRange(b, estimate.female) && a + b === estimate.total;
-      results.push(`${label} ${match ? 'fit the estimate' : 'miss the estimate'} (actual total ${a + b}, chart total ${estimate.total}).`);
-    } else if (a !== undefined || b !== undefined) {
-      const key = a !== undefined ? first : second;
-      const match = inRange(actual[key], a !== undefined ? estimate.male : estimate.female);
-      results.push(`${key[0].toUpperCase() + key.slice(1)} ${match ? 'fit' : 'miss'} the estimated range.`);
-    }
+    if (a === undefined && b === undefined) continue;
+    const matches = ({ male, female }) => (a === undefined || a === male) &&
+      (b === undefined || b === female);
+    const exact = matches(estimate.estimate);
+    const alternative = estimate.alternatives.some(matches);
+    const reported = a !== undefined && b !== undefined
+      ? `You entered ${a} ${first} and ${b} ${second}.`
+      : `You entered ${a ?? b} ${a !== undefined ? first : second}.`;
+    const primary = `The main estimate is ${estimate.estimate.male} ${first} and ${estimate.estimate.female} ${second}.`;
+    const comparison = exact
+      ? 'The entered counts fit the main estimate.'
+      : alternative ? 'The entered counts fit an alternate split.' : 'The entered counts miss all splits.';
+    results.push(`${label}. ${reported} ${primary} ${comparison}`);
   }
   if (actual.children !== undefined) {
     results.push(actual.children > reading.children.total

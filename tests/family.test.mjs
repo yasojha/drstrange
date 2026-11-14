@@ -13,6 +13,10 @@ test('family counts use the referenced sign, contributor split and child dignity
   assert.deepEqual(reading.siblings.points, ['Sun','Moon','Mercury','Lagna']);
   assert.deepEqual(reading.siblings.male, [1,3]);
   assert.deepEqual(reading.siblings.female, [1,3]);
+  assert.deepEqual(reading.siblings.estimate, { male: 1, female: 3 });
+  assert.deepEqual(reading.siblings.alternatives, [{ male: 2, female: 2 }, { male: 3, female: 1 }]);
+  assert.equal(reading.relatives.estimate.male, reading.paternal.estimate.male + reading.maternal.estimate.male);
+  assert.equal(reading.relatives.estimate.female, reading.paternal.estimate.female + reading.maternal.estimate.female);
   assert.equal(reading.relatives.total, reading.paternal.total + reading.maternal.total);
   assert.deepEqual(reading.children.excluded, ['Saturn']);
   assert.equal(reading.children.total, 4);
@@ -21,7 +25,9 @@ test('family counts use the referenced sign, contributor split and child dignity
 test('comparison checks the combined totals and treats children so far as a lower bound', () => {
   const reading = buildFamilyReading(chart);
   assert.match(checkFamilyCounts(reading, { brothers: 1, sisters: 1 })[0], /miss/);
-  assert.match(checkFamilyCounts(reading, { brothers: 1, sisters: 3 })[0], /fit/);
+  assert.match(checkFamilyCounts(reading, { brothers: 1, sisters: 3 })[0], /fit the main estimate/);
+  assert.match(checkFamilyCounts(reading, { brothers: 2, sisters: 2 })[0], /fit an alternate split/);
+  assert.match(checkFamilyCounts(reading, { brothers: 1 })[0], /entered counts fit the main estimate/);
   assert.match(checkFamilyCounts(reading, { children: 1 })[0], /still open/);
   assert.match(checkFamilyCounts(reading, { children: 5 })[0], /already misses/);
 });
