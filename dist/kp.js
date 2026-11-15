@@ -38,7 +38,9 @@ const EVENT_HOUSES={
  'career-reversal':[1,5,8,12],'venture-breakthrough':[2,3,10,11],
  'financial-shock':[8,12],'home-displacement':[4,8,12],
  'relationship-rupture':[1,6,10,12],
- 'home-property':[4,11],recognition:[10,11],education:[5,9,11]
+ 'home-property':[4,11],recognition:[10,11],education:[5,9,11],
+ 'vehicle-gain':[4,11],'happiness-gain':[4,5,11],'health-strain':[1,6,12],
+ 'financial-pressure':[2,8,12],'plan-setback':[3,8,10,12]
 };
 export function kpTimingCheck(natal,ruleId,when){
  const moon=natal.planets.find(p=>p.name==='Moon');

@@ -2,7 +2,7 @@ import { houseOf } from './engine.js';
 import { tajikaAspects } from './forecast.js';
 import { kpTimingCheck } from './kp.js';
 
-// Modern event definitions based on the house topics in Hāyanaratna 6.5, 6.6 and 6.11.
+// Modern calendar themes based on traditional Tājika house topics.
 // Require return-chart agreement and an event-specific secondary signal.
 const rules = [
   {
@@ -25,6 +25,41 @@ const rules = [
     title: 'A formal education milestone',
     detail: 'A window for a competitive admission, graduation, or a substantial qualification.',
     check: 'Count the date you received a formal admission offer, graduated, or earned a substantial credential. Routine study and ordinary course attendance do not count.'
+  },
+  {
+    id: 'vehicle-gain', label: 'Vehicle gain', minAge: 18,
+    primary: [4], secondary: [11], significators: ['Venus'],
+    title: 'A vehicle acquisition window',
+    detail: 'The charts highlight transport, comfort and acquisition.',
+    check: 'Count taking possession of a vehicle you bought, leased or received for regular use. A test drive or temporary rental does not count.'
+  },
+  {
+    id: 'happiness-gain', label: 'Happiness gain', minAge: 0,
+    primary: [4, 5], secondary: [11], significators: ['Moon', 'Venus', 'Jupiter'],
+    title: 'More room for joy and contentment',
+    detail: 'The charts highlight enjoyment, comfort and time with people you care about.',
+    check: 'For a past window, look for a meaningful celebration or a noticeable improvement in your day-to-day sense of contentment.'
+  },
+  {
+    id: 'health-strain', label: 'Health and wellbeing check-in', minAge: 0, kind: 'watch',
+    primary: [1, 6], secondary: [12], significators: ['Mars', 'Saturn'],
+    title: 'A wellbeing check-in',
+    detail: 'An astrological reflection window for rest, workload and routines. Health decisions should follow symptoms and medical advice.',
+    check: 'Use this card to reflect on whether demanding routines left less time for rest. The signal cannot assess disease, injury or medical risk.'
+  },
+  {
+    id: 'financial-pressure', label: 'Financial pressure', minAge: 18, kind: 'watch',
+    primary: [2, 11], secondary: [8, 12], significators: ['Mars', 'Saturn'],
+    title: 'Unexpected costs or income pressure',
+    detail: 'The charts highlight a tension between resources and obligations. Treat this as a reflection prompt before reviewing real figures.',
+    check: 'For a past window, count a material unplanned expense or loss of income. Routine bills and planned purchases do not count.'
+  },
+  {
+    id: 'plan-setback', label: 'Plan setback', minAge: 12, kind: 'watch',
+    primary: [3, 10], secondary: [8, 12], significators: ['Mars', 'Saturn'],
+    title: 'A setback to an important plan',
+    detail: 'The charts highlight friction around taking action or finishing a commitment.',
+    check: 'For a past window, count a major cancellation, a missed deadline with consequences, or a significant delay. Routine rescheduling does not count.'
   }
 ];
 
@@ -36,6 +71,30 @@ export function milestoneEvidence(chart, muntha) {
   const munthaHouse = muntha === undefined ? null : houseOf(muntha, chart.ascendant);
   return Object.fromEntries(rules.map(rule => {
     const core = [], corroboration = [];
+    if (rule.kind === 'watch') {
+      for (const house of rule.primary) {
+        const ruler = rulers[(chart.ascSign + house - 1) % 12];
+        for (const planet of planets) {
+          if (planet.house === house && rule.significators.includes(planet.name)) {
+            core.push(`${planet.name} in house ${house}`);
+          }
+        }
+        for (const {a, b, kind, angle} of aspects) {
+          if (kind !== 'hard' || ![0,90,180].includes(angle)) continue;
+          const partner = a === ruler ? b : b === ruler ? a : null;
+          if (rule.significators.includes(partner)) {
+            core.push(`Challenging aspect between ${a} and ${b} involves the ruler of house ${house}`);
+          }
+        }
+      }
+      for (const planet of planets) {
+        if (rule.secondary.includes(planet.house) && rule.significators.includes(planet.name)) {
+          corroboration.push(`${planet.name} in house ${planet.house}`);
+        }
+      }
+      if (rule.secondary.includes(munthaHouse)) corroboration.push(`Muntha in house ${munthaHouse}`);
+      return [rule.id, { core: [...new Set(core)], corroboration }];
+    }
     // Foundational study in the annual fourth house still needs a fifth- or
     // ninth-house signal in the solar month for a formal milestone.
     if (rule.id === 'education' && muntha !== undefined) {
@@ -81,7 +140,7 @@ export function milestoneCandidates({ natal, annual, monthly, age, start, end, s
     if (!a.core.length || !m.core.length) return [];
     const kp = kpTimingCheck(natal, rule.id, new Date((+start + +end) / 2));
     const secondaryCount = a.corroboration.length + m.corroboration.length;
-    if (!secondaryCount && kp.support < 2) return [];
+    if (!secondaryCount && (rule.kind === 'watch' || kp.support < 2)) return [];
     const strong = kp.support === 2 || Boolean(kp.support && secondaryCount);
     const evidence = [
       ...a.core.concat(a.corroboration).map(item => `Annual: ${item}`),
@@ -90,7 +149,7 @@ export function milestoneCandidates({ natal, annual, monthly, age, start, end, s
     return [{
       id: `milestone-${rule.id}-${solarYear}-${solarMonth}`,
       type: rule.id, label: rule.label, title: rule.title, detail: rule.detail, check: rule.check,
-      start, end, age, era, solarYear, kp, evidence,
+      start, end, age, era, solarYear, kp, evidence, kind: rule.kind ?? 'good',
       strength: strong ? 'Strong' : 'Mild',
       score: Math.min(a.core.length, 3) + 2 * Math.min(m.core.length, 3) +
         Math.min(secondaryCount, 2) + kp.support

@@ -24,7 +24,10 @@ test('known life events and names do not alter calculated windows',()=>{
 });
 
 test('milestones reach the calendar with annual and monthly evidence and separate past and future limits', () => {
- for (const type of ['home-property', 'recognition', 'education']) {
+ const gains = ['home-property', 'recognition', 'education', 'vehicle-gain', 'happiness-gain'];
+ const cautions = ['health-strain', 'financial-pressure', 'plan-setback'];
+ assert.deepEqual(Object.keys(report.milestoneGroups), [...gains, ...cautions]);
+ for (const type of [...gains, ...cautions]) {
   const events = report.milestoneGroups[type];
   assert.ok(events.length > 0, type);
   for (const era of ['past', 'future']) {
@@ -39,6 +42,7 @@ test('milestones reach the calendar with annual and monthly evidence and separat
    assert.ok(event.evidence.some(item => item.startsWith('Annual: ')));
    assert.ok(event.evidence.some(item => item.startsWith('Solar month: ')));
    assert.ok(event.check && ['Strong', 'Mild'].includes(event.strength));
+   assert.equal(event.kind, cautions.includes(type) ? 'watch' : 'good');
   }
  }
 });
