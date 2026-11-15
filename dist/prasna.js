@@ -1,6 +1,6 @@
 import {birthInstant,chartAt,SIGNS} from './engine.js';
 
-const rulers=['Mars','Venus','Mercury','Moon','Sun','Mercury','Venus','Mars','Jupiter','Saturn','Saturn','Jupiter'];
+export const rulers=['Mars','Venus','Mercury','Moon','Sun','Mercury','Venus','Mars','Jupiter','Saturn','Saturn','Jupiter'];
 
 // Everyday search prompts inspired by the sign imagery in Prasna Marga II, chapter 29.
 const placesBySign=[
@@ -59,11 +59,15 @@ export function searchClue(chart){
  return {title,detail,moonSign:SIGNS[moon.sign],ruler,sign:SIGNS[ruler.sign]};
 }
 
-export function lostItemReading({name,category,lastSeen,lat,lon,...timing},astronomy,now=new Date()){
- if(!name.trim())throw Error('Enter the name of the missing item.');
+export function castQuestion({lat,lon,...timing},astronomy,now=new Date()){
  if(lat===''||lon===''||lat==null||lon==null)throw Error('Enter both location coordinates.');
  const instant=questionInstant(timing,now);
- const chart=chartAt(instant,lat,lon,astronomy);
+ return {instant,chart:chartAt(instant,lat,lon,astronomy)};
+}
+
+export function lostItemReading({name,category,lastSeen,...input},astronomy,now=new Date()){
+ if(!name.trim())throw Error('Enter the name of the missing item.');
+ const {chart,instant}=castQuestion(input,astronomy,now);
  const firstStep=lastSeen.trim()
   ? `Start where you last had it: ${lastSeen.trim()}.`
   : 'Recall the last confirmed sighting and what you did immediately afterwards.';

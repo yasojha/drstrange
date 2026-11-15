@@ -4,7 +4,7 @@
  <meta charset="UTF-8">
  <meta name="viewport" content="width=device-width,initial-scale=1">
  <meta name="theme-color" content="#f6f3ea">
- <meta name="description" content="Cast a North Indian Prasna Kundali for a lost item and get a traditional clue and a practical search checklist.">
+ <meta name="description" content="Cast a North Indian Prasna Kundali for one question about work, travel, lost items and more.">
  <title>Prasna Kundali · Vedik</title>
  <link rel="stylesheet" href="styles.css">
 </head>
@@ -20,13 +20,20 @@
  <main>
   <div class="prasna-intro">
    <p class="eyebrow"><span class="tiny-star" aria-hidden="true">✦</span> PRASNA KUNDALI</p>
-   <h1>Find a <em>lost item.</em></h1>
+   <h1>Ask a <em>specific question.</em></h1>
    <p class="muted">Cast a chart for the moment and place you ask the question.</p>
   </div>
   <div class="prasna-workspace">
    <section class="birth-card">
-    <h2>What’s missing?</h2>
+    <h2>Your question</h2>
     <form id="prasna-form">
+     <label>Question type
+      <select name="type">
+       <option value="lost">Lost item</option>
+      </select>
+     </label>
+     <fieldset class="prasna-fields" id="prasna-lost-fields">
+     <legend>Lost item details</legend>
      <label>Item<input name="name" required maxlength="80" placeholder="e.g. House keys" autocomplete="off"></label>
      <label>Item type
       <select name="category">
@@ -38,6 +45,14 @@
       </select>
      </label>
      <label>Where did you last see it? <span>optional</span><input name="lastSeen" maxlength="160" placeholder="e.g. On the kitchen counter" autocomplete="off"></label>
+     </fieldset>
+     <fieldset class="prasna-fields" id="prasna-topic-fields" hidden disabled>
+      <legend>Situation</legend>
+      <label>What are you asking?
+       <textarea name="question" maxlength="240" rows="3" required aria-describedby="prasna-question-help"></textarea>
+      </label>
+      <p class="small" id="prasna-question-help">Ask about one real situation with a clear outcome.</p>
+     </fieldset>
      <div class="prasna-location-shortcut">
       <button type="button" class="text-button" id="prasna-use-location" aria-describedby="prasna-location-status">Use current location and time ⌖</button>
       <p class="small" id="prasna-location-status" role="status"></p>
@@ -76,26 +91,37 @@
    </section>
    <div>
     <section class="prasna-placeholder" id="prasna-placeholder" aria-label="Search results">
-     <p class="muted">Your search clue, checklist and question chart will appear here.</p>
+     <p class="muted">Your Prasna reading and question chart will appear here.</p>
     </section>
     <section id="prasna-result" aria-labelledby="prasna-result-title" hidden>
      <div class="chart-card prasna-result-card">
-      <p class="eyebrow">TRADITIONAL CLUE</p>
+      <p class="eyebrow" id="prasna-result-label">TRADITIONAL CLUE</p>
       <h2 id="prasna-result-title" tabindex="-1"></h2>
       <p id="prasna-clue" class="prasna-clue"></p>
       <p id="prasna-clue-detail"></p>
-      <p class="prasna-note">Treat this as a symbolic clue. The chart can’t verify where the item is.</p>
-      <h3>Search checklist</h3>
-      <ul class="prasna-checklist" id="prasna-checklist"></ul>
+      <p class="prasna-note" id="prasna-reading-note"></p>
+      <div id="prasna-search-steps" hidden>
+       <h3>Search checklist</h3>
+       <ul class="prasna-checklist" id="prasna-checklist"></ul>
+      </div>
+      <div id="prasna-next-step" hidden>
+       <h3>Next step</h3>
+       <p id="prasna-action"></p>
+      </div>
      </div>
      <div class="chart-card prasna-chart-card">
       <h3>Question chart</h3>
       <p id="prasna-context" class="prasna-note"></p>
       <div class="chart-wrap" id="prasna-chart"></div>
       <p id="prasna-placement" class="house-detail"></p>
-      <details>
+      <details id="prasna-lost-method">
        <summary>How the clue is calculated</summary>
        <p class="prasna-note">This simplified Nashta Prasna reading uses the Moon as its starting point. The sign occupied by the ruler of the second sign from the Moon suggests the type of place to check. The method adapts the lost-property chapter of <a href="https://pdfcoffee.com/prasna-marga-ii-pdf-free.html" target="_blank" rel="noreferrer">Prasna Marga II, chapter 29</a>.</p>
+      </details>
+      <details id="prasna-topic-method" hidden>
+       <summary>How the answer is calculated</summary>
+       <p class="prasna-note">Your selected question type determines which houses to check. This simplified reading uses aspects within 6° and compares actual planetary motion to tell an approaching aspect from one that is moving away. It draws on <a href="https://www.ebharatisampat.in/pdfs/ebharati-pdf-1621000298Prasnatantra-Raman-B-V.pdf" target="_blank" rel="noreferrer">Prasna Tantra</a>.</p>
+       <ul class="prasna-note" id="prasna-evidence"></ul>
       </details>
      </div>
     </section>
