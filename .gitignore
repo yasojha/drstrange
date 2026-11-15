@@ -4,4 +4,6 @@ node_modules/
 *.tar.gz
 .openai/*.local.*
 
-/dist/private-presets.json
+/dist/
+/private/
+/.vercel/

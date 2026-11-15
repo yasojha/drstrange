@@ -2,11 +2,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
-import {lostItemAssessment,lostItemReading,questionInstant,searchClue} from '../dist/prasna.js';
-import {northIndianChart} from '../dist/kundali-chart.js';
+import {lostItemAssessment,lostItemReading,questionInstant,searchClue} from '../src/prasna.js';
+import {northIndianChart} from '../src/kundali-chart.ts';
 
 const context=vm.createContext({Date});
-vm.runInContext(fs.readFileSync(new URL('../dist/vendor/astronomy.js',import.meta.url),'utf8'),context);
+vm.runInContext(fs.readFileSync(new URL('../src/vendor/astronomy.js',import.meta.url),'utf8'),context);
 const astronomy=context.Astronomy;
 const now=new Date('2026-11-15T13:05:34Z');
 

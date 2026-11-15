@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {calendarBounds} from '../dist/timeline.js';
+import {calendarBounds} from '../src/timeline.js';
 
 test('shared calendar begins with the earliest past prediction and ends at the last selected future event',()=>{
  const past=[{start:new Date('2018-04-01')},{start:new Date('2014-09-19')}];

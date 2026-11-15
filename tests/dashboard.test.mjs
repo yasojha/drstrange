@@ -1,6 +1,6 @@
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import vm from 'node:vm';
-import {buildLongTermForecast} from '../dist/long-term.js';import {buildDashboard,lineChart} from '../dist/dashboard.js';
-const context={Date};vm.createContext(context);vm.runInContext(fs.readFileSync(new URL('../dist/vendor/astronomy.js',import.meta.url),'utf8'),context);
+import {buildLongTermForecast} from '../src/long-term.js';import {buildDashboard,lineChart} from '../src/dashboard.js';
+const context={Date};vm.createContext(context);vm.runInContext(fs.readFileSync(new URL('../src/vendor/astronomy.js',import.meta.url),'utf8'),context);
 const input={date:'1990-01-01',time:'12:00',offset:5.5,lat:28.6139,lon:77.209};
 const future=buildLongTermForecast(input,context.Astronomy,{start:new Date('2026-11-11Z')});
 test('dashboard annual points cover the selected future horizon',()=>{

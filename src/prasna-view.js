@@ -1,5 +1,6 @@
+import './vendor/astronomy.js';
 import {SIGNS} from './engine.js';
-import {northIndianChart} from './kundali-chart.js';
+import {northIndianChart} from './kundali-chart.ts';
 import {places} from './locations.js';
 import {lostItemReading} from './prasna.js';
 import {questionTypes,topicQuestionReading} from './prasna-questions.js';

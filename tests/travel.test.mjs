@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { travelEvidence, travelSignals, selectTravelWindows } from '../dist/travel.js';
-import { readPresetProfiles } from '../dist/profiles.js';
+import { travelEvidence, travelSignals, selectTravelWindows } from '../src/travel.js';
+import { readPresetProfiles } from '../src/profiles.js';
 
 const houses = (...numbers) => numbers.map(house => ({ house, evidence: ['fixture'] }));
 

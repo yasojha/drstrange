@@ -1,5 +1,5 @@
-import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import vm from 'node:vm';import {calculate,birthInstant,houseOf,readings} from '../dist/engine.js';
-const ctx={Date};vm.createContext(ctx);vm.runInContext(fs.readFileSync(new URL('../dist/vendor/astronomy.js',import.meta.url),'utf8'),ctx);const A=ctx.Astronomy;
+import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import vm from 'node:vm';import {calculate,birthInstant,houseOf,readings} from '../src/engine.js';
+const ctx={Date};vm.createContext(ctx);vm.runInContext(fs.readFileSync(new URL('../src/vendor/astronomy.js',import.meta.url),'utf8'),ctx);const A=ctx.Astronomy;
 const input={date:'1990-01-01',time:'12:00',offset:5.5,lat:28.6139,lon:77.209};
 test('converts local birth time across UTC date boundaries',()=>{assert.equal(birthInstant('2000-01-01','01:00',5.5).toISOString(),'1999-12-31T19:30:00.000Z');assert.equal(birthInstant('2000-01-01','23:00',-5).toISOString(),'2000-01-02T04:00:00.000Z');});
 test('rejects invalid calendar dates, unsupported latitudes and offsets',()=>{assert.throws(()=>birthInstant('2001-02-29','12:00',5.5));assert.throws(()=>birthInstant('2000-01-01','25:00',5.5));assert.throws(()=>birthInstant('2000-01-01','12:00',15));assert.throws(()=>calculate({...input,lat:80},A));});

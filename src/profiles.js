@@ -20,7 +20,7 @@ export function deleteProfile(storage,name){const profiles=readProfiles(storage)
 // The owner-private Site may supply its own asset. Public source has no presets.
 export async function readPresetProfiles(fetchAsset = fetch) {
  try {
-  const response = await fetchAsset(new URL('./private-presets.json', import.meta.url));
+  const response = await fetchAsset('./private-presets.json');
   if (!response.ok) return {};
   const presets = await response.json();
   if (!presets || typeof presets !== 'object' || Array.isArray(presets)) return {};

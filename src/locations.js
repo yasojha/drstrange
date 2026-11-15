@@ -69,7 +69,9 @@ export function setupLocations(form, onProfileSelected) {
   form.elements.name.focus();
  });
  refresh();
- readPresetProfiles().then(profiles=>{presets=profiles;refresh();});
+ if(import.meta.env.MODE==='owner-private'){
+  readPresetProfiles().then(profiles=>{presets=profiles;refresh();});
+ }
  $('#save-my-details').addEventListener('click',()=>{
   if(!form.reportValidity())return;
   const name=profileName.value.trim()||form.elements.name.value.trim()||selector.selectedOptions[0]?.textContent;

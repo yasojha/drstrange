@@ -1,7 +1,8 @@
+import './vendor/astronomy.js';
 import {setupLocations} from './locations.js';
 import {captureProfile} from './profiles.js';
 import {calculate,SIGNS} from './engine.js';
-import {northIndianChart} from './kundali-chart.js';
+import {northIndianChart} from './kundali-chart.ts';
 import {startLifeHistory} from './history-view.js';
 import {renderFamilyCheck} from './family-view.js';
 const $=s=>document.querySelector(s),form=$('#birth-form');

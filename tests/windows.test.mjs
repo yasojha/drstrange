@@ -1,6 +1,6 @@
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import vm from 'node:vm';
-import {buildLifeWindows,rankWindows} from '../dist/windows.js';
-const ctx={Date};vm.createContext(ctx);vm.runInContext(fs.readFileSync(new URL('../dist/vendor/astronomy.js',import.meta.url),'utf8'),ctx);const A=ctx.Astronomy;
+import {buildLifeWindows,rankWindows} from '../src/windows.js';
+const ctx={Date};vm.createContext(ctx);vm.runInContext(fs.readFileSync(new URL('../src/vendor/astronomy.js',import.meta.url),'utf8'),ctx);const A=ctx.Astronomy;
 const input={date:'1990-01-01',time:'12:00',offset:5.5,lat:28.6139,lon:77.209};
 const report=buildLifeWindows(input,A,{asOf:new Date('2026-11-11Z')});
 test('four event types have up to five ranked nonoverlapping windows',()=>{

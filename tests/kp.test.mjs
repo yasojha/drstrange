@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {stellarLords,planetaryPeriod,kpTimingCheck} from '../dist/kp.js';
+import {stellarLords,planetaryPeriod,kpTimingCheck} from '../src/kp.js';
 
 test('nakshatra and sub divisions follow Vimshottari proportions at boundaries',()=>{
  assert.deepEqual(stellarLords(0),{starLord:'Ketu',subLord:'Ketu',starIndex:0});

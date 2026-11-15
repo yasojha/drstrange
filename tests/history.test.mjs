@@ -1,5 +1,5 @@
-import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import vm from 'node:vm';import {buildLifeHistory,reviewSummary,selectLifeEvents,majorEventMatches,majorEventRules} from '../dist/history.js';
-const ctx={Date};vm.createContext(ctx);vm.runInContext(fs.readFileSync(new URL('../dist/vendor/astronomy.js',import.meta.url),'utf8'),ctx);const A=ctx.Astronomy;
+import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import vm from 'node:vm';import {buildLifeHistory,reviewSummary,selectLifeEvents,majorEventMatches,majorEventRules} from '../src/history.js';
+const ctx={Date};vm.createContext(ctx);vm.runInContext(fs.readFileSync(new URL('../src/vendor/astronomy.js',import.meta.url),'utf8'),ctx);const A=ctx.Astronomy;
 const input={date:'1990-01-01',time:'12:00',offset:5.5,lat:28.6139,lon:77.209};
 const cutoff=new Date('2026-11-07T00:00:00Z');const report=buildLifeHistory(input,A,{asOf:cutoff});
 test('adult history starts at 12, never pads ten or leaks future dates',()=>{assert.ok(report.events.length<=10);for(const e of report.events){assert.ok(+e.start<+e.end);assert.ok(+e.end<=+cutoff);assert.ok(e.age>=12);assert.ok(e.detail.length>20&&e.check.length>20);assert.ok(e.evidence.annual.length&&e.evidence.monthly.length);}for(let i=1;i<report.events.length;i++)assert.ok(+report.events[i].start>+report.events[i-1].start);});

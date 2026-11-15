@@ -4,7 +4,14 @@ North Indian kundali, up to ten retrospective major-event hypotheses, and select
 
 ## Run
 
-`npm run dev` serves `dist/` on port 3000. `npm test` runs the Node test suite. Node 20+ is sufficient, with no dependencies or API keys. Deploy `dist/` to any static host; no build step is required.
+Use Node 24 and run `npm ci` to install the build tools.
+
+- `npm run dev` serves the editable files in `src/` with Vite.
+- `npm run typecheck` checks TypeScript. Existing JavaScript modules can be migrated as they are edited.
+- `npm test` runs the Node test suite against the source.
+- `npm run build` checks types and produces the optimized static site in `dist/`. Use `npm run preview` to serve that build locally.
+
+Vercel builds the app from the GitHub repository using the settings in `vercel.json`. The default build uses manual and browser-saved profiles. Public releases use that default build. The optional `npm run build:owner` includes separately stored presets and is intended for deployments restricted to the site owner.
 
 ## Forecast calculations
 
@@ -41,11 +48,11 @@ Modern, nonliteral wording deliberately omits the source's severe deterministic 
 
 ## Code map
 
-- `dist/engine.js`: birth chart, exported instant-based `chartAt` calculation and legacy natal reading API.
-- `dist/forecast.js`: pure annual/monthly return solver, Tajika aspects, Muntha, evidence and report assembly.
-- `dist/app.js`: form, SVG chart, forecast view and local downloads.
-- `dist/styles.css`: responsive presentation.
-- `dist/vendor/astronomy.js`: Astronomy Engine, MIT license retained. Source: https://github.com/cosinekitty/astronomy/blob/master/source/js/astronomy.browser.min.js
+- `src/engine.js`: birth chart, exported instant-based `chartAt` calculation and legacy natal reading API.
+- `src/forecast.js`: pure annual/monthly return solver, Tajika aspects, Muntha, evidence and report assembly.
+- `src/app.js`: form, SVG chart, forecast view and local downloads.
+- `src/styles.css`: responsive presentation.
+- `src/vendor/astronomy.js`: Astronomy Engine, MIT license retained. Source: https://github.com/cosinekitty/astronomy/blob/master/source/js/astronomy.browser.min.js
 - `tests/`: UTC conversion, validation, ascendant geometry, house wrap, return residual, annual/monthly coverage, leap dates, Muntha, orbs, residence changes, evidence, ranking and mixed-signal tests.
 
 Charts remain data-first, so a future optional 3D renderer can share the same model.
@@ -64,11 +71,11 @@ Stronger matches require two relevant domains in both annual and monthly return 
 
 Historical residences are unknown, so past returns use the birthplace. The calendar shows month-long windows rather than exact event days. A private local check against five user-supplied milestone windows matched **0/5** before this change; rerun the same check after changes. Benchmark dates remain outside the repository. The calculation is not independently validated as predictive.
 
-`dist/history-worker.js` runs the scan in a module Web Worker. The calendar and review cards support match/miss/unsure feedback, optional notes and a JSON export, all kept in tab memory until refresh. Feedback never changes calculated claims.
+`src/history-worker.js` runs the scan in a module Web Worker. The calendar and review cards support match/miss/unsure feedback, optional notes and a JSON export, all kept in tab memory until refresh. Feedback never changes calculated claims.
 
 ## Partial KP timing check
 
-`dist/kp.js` calculates nakshatra star/sub lords and Vimshottari major/sub periods from the natal Moon. Its event-house support currently uses the app’s approximate Lahiri longitudes and whole-sign natal houses. It does **not** calculate KP ayanamsa, Placidus cusps, cuspal sub-lord promises, node agency or ruling planets. It is a partial KP-inspired timing check, not an independent validation. The annual and monthly forecast cards show its support, mixed signal or lack of support. The past calendar ranks stronger Tajika matches first; lower-threshold exploratory matches need at least partial KP timing support and are identified as such. Ten is a maximum for profiles with enough candidates, never proof of ten actual events.
+`src/kp.js` calculates nakshatra star/sub lords and Vimshottari major/sub periods from the natal Moon. Its event-house support currently uses the app’s approximate Lahiri longitudes and whole-sign natal houses. It does **not** calculate KP ayanamsa, Placidus cusps, cuspal sub-lord promises, node agency or ruling planets. It is a partial KP-inspired timing check, not an independent validation. The annual and monthly forecast cards show its support, mixed signal or lack of support. The past calendar ranks stronger Tajika matches first; lower-threshold exploratory matches need at least partial KP timing support and are identified as such. Ten is a maximum for profiles with enough candidates, never proof of ten actual events.
 
 ## Unified calendar interface
 
@@ -78,11 +85,11 @@ On screens up to 760 px wide, selecting a calendar item opens its past review or
 
 ## Ten-year outlook
 
-`dist/long-term.js` scans annual Tajika returns and solar-month windows for ten years from the selected date. It uses the same multi-domain event rules and partial KP timing check as retrospective candidates, but excludes one-time firsts (marriage, graduation, first job, first child) because the app does not ask whether they already occurred. It selects at most eight major candidates, at most two per event type and one per solar year, then shows up to five leading headlines. These are unvalidated hypotheses; there is no guaranteed event or monthly quota. The user-selected residence is assumed constant for all future return charts. The older twelve-month theme engine remains in `dist/forecast.js` for calculation regression tests, but the UI no longer presents it.
+`src/long-term.js` scans annual Tajika returns and solar-month windows for ten years from the selected date. It uses the same multi-domain event rules and partial KP timing check as retrospective candidates, but excludes one-time firsts (marriage, graduation, first job, first child) because the app does not ask whether they already occurred. It selects at most eight major candidates, at most two per event type and one per solar year, then shows up to five leading headlines. These are unvalidated hypotheses; there is no guaranteed event or monthly quota. The user-selected residence is assumed constant for all future return charts. The older twelve-month theme engine remains in `src/forecast.js` for calculation regression tests, but the UI no longer presents it.
 
 ## Ranked life windows
 
-The shared calendar also shows up to five ranked windows each for formal partnership, a child joining the family, substantial income increase, and starting an independent business. `dist/windows.js` scans annual and solar-month Tajika return signals, ranks candidates within each type, and spaces selected windows at least eighteen months apart. Marriage windows are limited to ages 21–40. Rank labels compare this engine’s signals, not measured chances; categories may have fewer than five. Past user confirmations are never fed into ranking. The partial KP indicator is displayed but is not independent validation.
+The shared calendar also shows up to five ranked windows each for formal partnership, a child joining the family, substantial income increase, and starting an independent business. `src/windows.js` scans annual and solar-month Tajika return signals, ranks candidates within each type, and spaces selected windows at least eighteen months apart. Marriage windows are limited to ages 21–40. Rank labels compare this engine’s signals, not measured chances; categories may have fewer than five. Past user confirmations are never fed into ranking. The partial KP indicator is displayed but is not independent validation.
 
 The four ranked window types are retrospective hypotheses and can miss known events. A past event is never inserted from user confirmation or relaxed into a match after the fact. The current signals require both mapped life areas to have net-positive annual/monthly support; a neutral annual relationship chart or a conflicting fifth-house signal can exclude a real marriage or birth. The calendar distinguishes past ranked windows (blue), positive future windows (green), and cautions (terracotta). Per-window details state the relative score, age, evidence areas and partial KP status. No score is a measured likelihood.
 

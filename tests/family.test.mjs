@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildFamilyReading, checkFamilyCounts } from '../dist/family.js';
+import { buildFamilyReading, checkFamilyCounts } from '../src/family.js';
 
 // This hand-checkable fixture forces the contributor distances to equal the target houses.
 const chart = {

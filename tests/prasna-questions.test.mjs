@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
-import {interpretQuestion,questionTypes,topicQuestionReading} from '../dist/prasna-questions.js';
+import {interpretQuestion,questionTypes,topicQuestionReading} from '../src/prasna-questions.js';
 
 function makeChart(positions,ascSign=0){
  const fullPositions={Mars:12,Saturn:75,Moon:111,Sun:130,Mercury:82,Jupiter:250,Venus:49,...positions};
@@ -60,7 +60,7 @@ test('the Moon as ascendant ruler does not repeat the same interview evidence',(
 
 test('all eight categories cast a real chart with a category-specific next step',()=>{
  const context=vm.createContext({Date});
- vm.runInContext(fs.readFileSync(new URL('../dist/vendor/astronomy.js',import.meta.url),'utf8'),context);
+ vm.runInContext(fs.readFileSync(new URL('../src/vendor/astronomy.js',import.meta.url),'utf8'),context);
  const now=new Date('2026-11-15T17:00:00Z');
  const base={timing:'now',lat:28.0229,lon:73.3119};
  const types=Object.entries(questionTypes);

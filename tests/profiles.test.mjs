@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {readProfiles,saveProfile,deleteProfile,captureProfile,LEGACY_KEY} from '../dist/profiles.js';
+import {readProfiles,saveProfile,deleteProfile,captureProfile,LEGACY_KEY} from '../src/profiles.js';
 const memory=()=>{const data=new Map();return {getItem:k=>data.get(k)??null,setItem:(k,v)=>data.set(k,v)}};
 test('named profiles save, switch, overwrite and delete without mixing data',()=>{
  const storage=memory(),one={date:'1990-01-01',time:'12:00',city:'Delhi',lat:'28.61',lon:'77.2',offset:'5.5'},two={date:'1992-05-04',time:'09:20',city:'custom',lat:'12',lon:'74',offset:'5.5'};

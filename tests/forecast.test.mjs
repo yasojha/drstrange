@@ -1,5 +1,5 @@
-import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import vm from 'node:vm';import {buildForecast,solarLongitude,solarReturn,delta,addMonths,munthaLongitude,tajikaAspects} from '../dist/forecast.js';
-const ctx={Date};vm.createContext(ctx);vm.runInContext(fs.readFileSync(new URL('../dist/vendor/astronomy.js',import.meta.url),'utf8'),ctx);const A=ctx.Astronomy;
+import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import vm from 'node:vm';import {buildForecast,solarLongitude,solarReturn,delta,addMonths,munthaLongitude,tajikaAspects} from '../src/forecast.js';
+const ctx={Date};vm.createContext(ctx);vm.runInContext(fs.readFileSync(new URL('../src/vendor/astronomy.js',import.meta.url),'utf8'),ctx);const A=ctx.Astronomy;
 const input={date:'1990-01-01',time:'12:00',offset:5.5,lat:28.6139,lon:77.209};
 const start=new Date('2026-11-07T00:00:00Z');const report=buildForecast(input,A,{start});
 test('report spans exactly twelve consecutive months and five distinct headlines',()=>{assert.equal(report.months.length,12);assert.equal(report.headlines.length,5);assert.equal(new Set(report.headlines.map(h=>h.id)).size,5);assert.equal(report.from.toISOString(),'2026-11-07T00:00:00.000Z');assert.equal(report.to.toISOString(),'2027-11-07T00:00:00.000Z');for(let i=1;i<12;i++)assert.equal(+report.months[i].start,+report.months[i-1].end);});
