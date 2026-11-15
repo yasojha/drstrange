@@ -7,6 +7,9 @@ const $=selector=>document.querySelector(selector);
 const form=$('#prasna-form');
 const city=form.elements.city;
 const timing=form.elements.timing;
+const locationButton=$('#prasna-use-location');
+const locationStatus=$('#prasna-location-status');
+let locationRequest=0;
 
 for(const [key,name,state] of places){
  city.add(new Option(`${name}, ${state}, India`,key),city.options[city.options.length-1]);
@@ -22,9 +25,48 @@ function showFields(){
  $('#question-offset').hidden=form.elements.offset.disabled=!custom;
  $('#question-ist').hidden=custom;
 }
-city.addEventListener('change',showFields);
+function clearLocationRequest(){
+ locationRequest++;
+ locationButton.disabled=false;
+ locationStatus.textContent='';
+}
+city.addEventListener('change',()=>{
+ clearLocationRequest();
+ showFields();
+});
 timing.addEventListener('change',showFields);
+for(const field of [form.elements.lat,form.elements.lon])field.addEventListener('input',clearLocationRequest);
 showFields();
+
+locationButton.addEventListener('click',()=>{
+ const fallback='Choose a city or enter coordinates.';
+ if(!navigator.geolocation){
+  locationStatus.textContent=`Location is unavailable in this browser. ${fallback}`;
+  return;
+ }
+ const request=++locationRequest;
+ locationButton.disabled=true;
+ locationStatus.textContent='Getting your current location…';
+ navigator.geolocation.getCurrentPosition(({coords})=>{
+  if(request!==locationRequest)return;
+  locationButton.disabled=false;
+  if(Math.abs(coords.latitude)>65){
+   locationStatus.textContent='The chart supports locations between 65° south and 65° north.';
+   return;
+  }
+  city.value='custom';
+  form.elements.lat.value=coords.latitude.toFixed(6);
+  form.elements.lon.value=coords.longitude.toFixed(6);
+  timing.value='now';
+  showFields();
+  locationStatus.textContent='Current location selected.';
+ },error=>{
+  if(request!==locationRequest)return;
+  locationButton.disabled=false;
+  const message=error.code===1?'Location permission was denied.':'Could not get your location.';
+  locationStatus.textContent=`${message} ${fallback}`;
+ },{timeout:15000,maximumAge:0});
+});
 
 function showChecklist(steps){
  $('#prasna-checklist').replaceChildren(...steps.map(step=>{
@@ -47,16 +89,16 @@ form.addEventListener('submit',event=>{
  try{
   const {chart,instant,clue,steps}=lostItemReading({...fields,...location},window.Astronomy);
   const placeLabel=place ? place[1]+`, ${place[2]}` : `${location.lat}°, ${location.lon}°`;
+  const clock=place ? {zone:'Asia/Kolkata',label:'IST'}
+   : fields.timing==='now' ? {zone:undefined,label:'device time'} : {zone:'UTC',label:'UTC'};
   const questionTime=new Intl.DateTimeFormat('en-IN',{
-   dateStyle:'medium',
-   timeStyle:'short',
-   timeZone:place?'Asia/Kolkata':'UTC'
+   dateStyle:'medium',timeStyle:'short',timeZone:clock.zone
   }).format(instant);
   $('#prasna-result-title').textContent=fields.name.trim();
   $('#prasna-clue').textContent=clue.title;
   $('#prasna-clue-detail').textContent=clue.detail;
   showChecklist(steps);
-  $('#prasna-context').textContent=`${placeLabel} · ${questionTime} ${place?'IST':'UTC'} · ${SIGNS[chart.ascSign]} rising`;
+  $('#prasna-context').textContent=`${placeLabel} · ${questionTime} ${clock.label} · ${SIGNS[chart.ascSign]} rising`;
   $('#prasna-chart').innerHTML=northIndianChart(chart,{
    title:'North Indian Prasna Kundali',
    label:'North Indian question chart with the clue planet’s house highlighted.',

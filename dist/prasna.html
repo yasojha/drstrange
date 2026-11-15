@@ -38,6 +38,10 @@
       </select>
      </label>
      <label>Where did you last see it? <span>optional</span><input name="lastSeen" maxlength="160" placeholder="e.g. On the kitchen counter" autocomplete="off"></label>
+     <div class="prasna-location-shortcut">
+      <button type="button" class="text-button" id="prasna-use-location" aria-describedby="prasna-location-status">Use current location and time ⌖</button>
+      <p class="small" id="prasna-location-status" role="status"></p>
+     </div>
      <label>Where did you ask the question?
       <select name="city" required>
        <option value="">Choose your city</option>
@@ -53,7 +57,7 @@
      </fieldset>
      <label>When did you ask?
       <select name="timing">
-       <option value="now">Use the time I cast the chart</option>
+       <option value="now">Current time (when you cast the chart)</option>
        <option value="earlier">Enter an earlier time</option>
       </select>
      </label>

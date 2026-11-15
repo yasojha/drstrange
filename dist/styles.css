@@ -70,6 +70,10 @@
 .prasna-fields{padding:0;border:0;margin:0;min-width:0}
 .prasna-fields legend{font-size:11px;color:var(--muted);margin-bottom:6px}
 .prasna-fields .small{margin:0 0 12px}
+.prasna-location-shortcut{margin-bottom:15px}
+.prasna-location-shortcut .text-button{color:var(--green);font-weight:700;text-decoration:underline;text-underline-offset:3px;padding-block:10px}
+.prasna-location-shortcut .small{margin:0;color:#616757}
+.prasna-location-shortcut .small:empty{display:none}
 .prasna-result-card h2{overflow-wrap:anywhere}
 .prasna-result-card h3,.prasna-chart-card h3{font:400 24px 'Playfair Display',Georgia,serif;margin:22px 0 12px}
 .prasna-result-card>p{line-height:1.6}
