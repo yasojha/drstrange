@@ -97,3 +97,10 @@
 .prasna-fields textarea{display:block;width:100%;margin-top:8px;padding:12px 10px;border:1px solid #d5d7c8;border-radius:3px;background:#fbfaf6;color:var(--ink);font:inherit;font-size:13px;line-height:1.5;resize:vertical}
 .prasna-fields textarea:focus{outline:1px solid var(--accent)}
 #prasna-next-step p{font-size:13px;line-height:1.6}
+.prasna-loss-context{margin-bottom:12px}
+.prasna-loss-context summary{color:var(--green);font-weight:600}
+.prasna-loss-summary{margin:14px 0 20px;border-top:1px solid var(--line)}
+.prasna-loss-summary>div{padding:12px 0;border-bottom:1px solid var(--line)}
+.prasna-loss-summary dt{font-size:11px;color:#616757;margin-bottom:4px}
+.prasna-loss-summary dd{margin:0;line-height:1.55}
+.prasna-loss-summary dd p{margin:3px 0 0;font-size:12px}

@@ -103,12 +103,31 @@ function showChecklist(steps){
 }
 
 function showLostResult(reading,fields){
- const {clue}=reading;
- $('#prasna-result-label').textContent='TRADITIONAL CLUE';
+ const {clue,assessment}=reading;
+ const rows=[
+  ['Misplaced or taken?',assessment.status],
+  ['If taken, what kind of access?',assessment.access],
+  ['Home or elsewhere?',assessment.area],
+  ['Will it turn up?',assessment.recovery]
+ ];
+ $('#prasna-loss-summary').replaceChildren(...rows.filter(([,entry])=>entry).map(([label,entry])=>{
+  const row=document.createElement('div');
+  const term=document.createElement('dt');
+  const definition=document.createElement('dd');
+  const headline=document.createElement('strong');
+  const detail=document.createElement('p');
+  term.textContent=label;
+  headline.textContent=entry.title;
+  detail.textContent=entry.detail;
+  definition.append(headline,detail);
+  row.append(term,definition);
+  return row;
+ }));
+ $('#prasna-result-label').textContent='LOST ITEM READING';
  $('#prasna-result-title').textContent=fields.name.trim();
  $('#prasna-clue').textContent=clue.title;
  $('#prasna-clue-detail').textContent=clue.detail;
- $('#prasna-reading-note').textContent='Treat this as a symbolic clue. The chart can’t verify where the item is.';
+ $('#prasna-reading-note').textContent='These are symbolic clues. Use what you can verify to decide where to search.';
  $('#prasna-placement').textContent=`Moon in ${clue.moonSign}. Highlighted: ${clue.ruler.name} in ${clue.sign}, house ${clue.ruler.house}.`;
  showChecklist(reading.steps);
  return [clue.ruler.house];
@@ -142,6 +161,7 @@ form.addEventListener('submit',event=>{
   const reading=read({...fields,...location},window.Astronomy);
   const {chart,instant}=reading;
   const selected=lost?showLostResult(reading,fields):showTopicResult(reading,fields.type);
+  $('#prasna-loss-summary').hidden=!lost;
   $('#prasna-search-steps').hidden=!lost;
   $('#prasna-next-step').hidden=lost;
   $('#prasna-lost-method').hidden=!lost;

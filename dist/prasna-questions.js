@@ -1,5 +1,5 @@
-import {chartAt,wrap} from './engine.js';
-import {castQuestion,rulers} from './prasna.js';
+import {chartAt} from './engine.js';
+import {castQuestion,prasnaAspect,rulers,signedAngle} from './prasna.js';
 
 export const questionTypes={
  interview:{
@@ -75,8 +75,6 @@ const aspects={
  120:{name:'trine',supportive:true},
  180:{name:'opposition',supportive:false}
 };
-const signedAngle=angle=>wrap(angle+180)-180;
-const maxOrb=6;
 const exactTolerance=0.05;
 
 function getPlanet(chart,house){
@@ -89,11 +87,10 @@ function contact(chart,later,pair){
  const [from,to]=pair.map(house=>getPlanet(chart,house));
  const base={from,to};
  if(from.name===to.name)return {...base,phase:'shared'};
- const signAngle=signedAngle((to.sign-from.sign)*30);
- const aspect=aspects[Math.abs(signAngle)];
- if(!aspect)return {...base,phase:'none'};
- const orb=signedAngle(to.longitude-from.longitude-signAngle);
- if(Math.abs(orb)>maxOrb)return {...base,phase:'none'};
+ const geometry=prasnaAspect(from,to);
+ if(!geometry)return {...base,phase:'none'};
+ const {angle,offset:orb}=geometry;
+ const aspect=aspects[angle];
  const nextLongitude=name=>later.planets.find(planet=>planet.name===name).longitude;
  const change=signedAngle(nextLongitude(to.name)-nextLongitude(from.name)-(to.longitude-from.longitude));
  let phase='steady';

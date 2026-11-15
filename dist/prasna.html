@@ -45,6 +45,23 @@
       </select>
      </label>
      <label>Where did you last see it? <span>optional</span><input name="lastSeen" maxlength="160" placeholder="e.g. On the kitchen counter" autocomplete="off"></label>
+     <details class="prasna-loss-context">
+      <summary>Last known place and signs of theft</summary>
+      <label>Last confirmed sighting
+       <select name="lastLocation">
+        <option value="">I’m not sure</option>
+        <option value="home">Inside my home</option>
+        <option value="away">Away from home</option>
+       </select>
+      </label>
+      <label>What evidence do you have?
+       <select name="theftEvidence">
+        <option value="">None, or I’m not sure</option>
+        <option value="signs">Possible signs, such as tampering</option>
+        <option value="direct">Direct evidence, such as footage or a witness</option>
+       </select>
+      </label>
+     </details>
      </fieldset>
      <fieldset class="prasna-fields" id="prasna-topic-fields" hidden disabled>
       <legend>Situation</legend>
@@ -97,6 +114,7 @@
      <div class="chart-card prasna-result-card">
       <p class="eyebrow" id="prasna-result-label">TRADITIONAL CLUE</p>
       <h2 id="prasna-result-title" tabindex="-1"></h2>
+      <dl class="prasna-loss-summary" id="prasna-loss-summary" hidden></dl>
       <p id="prasna-clue" class="prasna-clue"></p>
       <p id="prasna-clue-detail"></p>
       <p class="prasna-note" id="prasna-reading-note"></p>
@@ -115,8 +133,9 @@
       <div class="chart-wrap" id="prasna-chart"></div>
       <p id="prasna-placement" class="house-detail"></p>
       <details id="prasna-lost-method">
-       <summary>How the clue is calculated</summary>
-       <p class="prasna-note">This simplified Nashta Prasna reading uses the Moon as its starting point. The sign occupied by the ruler of the second sign from the Moon suggests the type of place to check. The method adapts the lost-property chapter of <a href="https://pdfcoffee.com/prasna-marga-ii-pdf-free.html" target="_blank" rel="noreferrer">Prasna Marga II, chapter 29</a>.</p>
+       <summary>How the lost-item reading is calculated</summary>
+       <p class="prasna-note">This simplified Nashta Prasna reading adapts <a href="https://pdfcoffee.com/prasna-marga-ii-pdf-free.html" target="_blank" rel="noreferrer">Prasna Marga II, chapter 29, verses 50–53</a>. The ruler of the second sign from the Moon guides the place clue. For the taking pattern, the app compares that planet with the third- and sixth-house rulers using aspects within 6°. It checks the first and eleventh houses for recovery signs.</p>
+       <p class="prasna-note">The last confirmed sighting takes priority in the search. The chart can suggest where to look. Evidence is what can establish whether someone took it.</p>
       </details>
       <details id="prasna-topic-method" hidden>
        <summary>How the answer is calculated</summary>
