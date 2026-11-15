@@ -59,3 +59,34 @@
 .family-breakdown{display:grid;grid-template-columns:max-content 1fr;gap:8px 12px;font-size:12px;line-height:1.5}
 .family-breakdown dt{font-weight:700}.family-breakdown dd{margin:0;color:var(--muted)}
 .family-check details+details{margin-top:10px}
+
+.prasna-tab[aria-current=page]{color:var(--accent);font-weight:700;text-decoration:underline;text-underline-offset:6px}
+.prasna-intro{padding:42px 0 28px}
+.prasna-intro h1{font-size:clamp(42px,7vw,74px);margin:10px 0 12px}
+.prasna-intro .muted{margin:0}
+.prasna-workspace{display:grid;grid-template-columns:minmax(290px,360px) minmax(0,1fr);align-items:start;gap:24px;padding-bottom:52px}
+.prasna-placeholder{border:1px dashed #c7cabc;border-radius:4px;padding:30px}
+.prasna-placeholder p{margin:0}
+.prasna-fields{padding:0;border:0;margin:0;min-width:0}
+.prasna-fields legend{font-size:11px;color:var(--muted);margin-bottom:6px}
+.prasna-fields .small{margin:0 0 12px}
+.prasna-result-card h2{overflow-wrap:anywhere}
+.prasna-result-card h3,.prasna-chart-card h3{font:400 24px 'Playfair Display',Georgia,serif;margin:22px 0 12px}
+.prasna-result-card>p{line-height:1.6}
+.prasna-result-card .prasna-clue{font-weight:700;color:var(--green);font-size:17px;margin-bottom:0}
+.prasna-note{font-size:12px;line-height:1.65;color:#616757}
+.prasna-note a{text-decoration:underline;text-underline-offset:2px}
+.prasna-chart-card{margin-top:20px}
+.prasna-chart-card h3{margin-top:0}
+.prasna-chart-card .kundali .cell{cursor:default;pointer-events:none}
+.prasna-chart-card .kundali g.selected .cell{fill:#dfe7d8;stroke:#657d60;stroke-width:2}
+.prasna-checklist{margin:0;padding:0;list-style:none;border-top:1px solid var(--line)}
+.prasna-checklist label{display:flex;align-items:start;gap:10px;padding:11px 0;border-bottom:1px solid var(--line);font-size:13px;line-height:1.5;margin:0;overflow-wrap:anywhere}
+.prasna-checklist input{width:16px;height:16px;flex:none;margin:2px 0 0;accent-color:var(--green)}
+@media(max-width:760px){
+ header{padding-inline:16px}
+ header nav{gap:12px}
+ header .brand{gap:5px}
+ header .brand sup{display:none}
+ .prasna-workspace{grid-template-columns:minmax(0,1fr);gap:16px}
+}

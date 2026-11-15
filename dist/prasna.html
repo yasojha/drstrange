@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width,initial-scale=1">
+ <meta name="theme-color" content="#f6f3ea">
+ <meta name="description" content="Cast a North Indian Prasna Kundali for a lost item and get a traditional clue and a practical search checklist.">
+ <title>Prasna Kundali · Vedik</title>
+ <link rel="stylesheet" href="styles.css">
+</head>
+<body class="prasna-page">
+ <header>
+  <a class="brand" href="./">✳ <span>vedik</span><sup>BETA</sup></a>
+  <nav aria-label="Main navigation">
+   <a href="./#chart-section">Your kundali</a>
+   <a href="./#life-section">Your timeline</a>
+   <a class="prasna-tab" href="prasna.html" aria-current="page">Prasna Kundali</a>
+  </nav>
+ </header>
+ <main>
+  <div class="prasna-intro">
+   <p class="eyebrow"><span class="tiny-star" aria-hidden="true">✦</span> PRASNA KUNDALI</p>
+   <h1>Find a <em>lost item.</em></h1>
+   <p class="muted">Cast a chart for the moment and place you ask the question.</p>
+  </div>
+  <div class="prasna-workspace">
+   <section class="birth-card">
+    <h2>What’s missing?</h2>
+    <form id="prasna-form">
+     <label>Item<input name="name" required maxlength="80" placeholder="e.g. House keys" autocomplete="off"></label>
+     <label>Item type
+      <select name="category">
+       <option value="other">Other item</option>
+       <option value="keys">Keys</option>
+       <option value="phone">Phone</option>
+       <option value="documents">Documents</option>
+       <option value="jewellery">Jewellery</option>
+      </select>
+     </label>
+     <label>Where did you last see it? <span>optional</span><input name="lastSeen" maxlength="160" placeholder="e.g. On the kitchen counter" autocomplete="off"></label>
+     <label>Where did you ask the question?
+      <select name="city" required>
+       <option value="">Choose your city</option>
+       <option value="custom">Other place · enter coordinates</option>
+      </select>
+     </label>
+     <fieldset class="prasna-fields" id="question-coordinates" hidden disabled>
+      <legend>Location coordinates</legend>
+      <div class="form-row">
+       <label>Latitude<input name="lat" type="number" min="-65" max="65" step="any" required></label>
+       <label>Longitude<input name="lon" type="number" min="-180" max="180" step="any" required></label>
+      </div>
+     </fieldset>
+     <label>When did you ask?
+      <select name="timing">
+       <option value="now">Use the time I cast the chart</option>
+       <option value="earlier">Enter an earlier time</option>
+      </select>
+     </label>
+     <fieldset class="prasna-fields" id="question-time" hidden disabled>
+      <legend>Earlier local time</legend>
+      <div class="form-row">
+       <label>Date<input name="date" type="date" min="1900-01-01" max="2100-12-31" required></label>
+       <label>Time<input name="time" type="time" required></label>
+      </div>
+      <label id="question-offset" hidden>UTC offset in hours<input name="offset" type="number" min="-12" max="14" step="0.25" placeholder="e.g. 5.5" required disabled></label>
+      <p class="small" id="question-ist">City presets use India Standard Time.</p>
+     </fieldset>
+     <button class="primary" type="submit">Cast Prasna chart <span aria-hidden="true">↗</span></button>
+     <p class="error" id="prasna-error" role="alert"></p>
+    </form>
+   </section>
+   <div>
+    <section class="prasna-placeholder" id="prasna-placeholder" aria-label="Search results">
+     <p class="muted">Your search clue, checklist and question chart will appear here.</p>
+    </section>
+    <section id="prasna-result" aria-labelledby="prasna-result-title" hidden>
+     <div class="chart-card prasna-result-card">
+      <p class="eyebrow">TRADITIONAL CLUE</p>
+      <h2 id="prasna-result-title" tabindex="-1"></h2>
+      <p id="prasna-clue" class="prasna-clue"></p>
+      <p id="prasna-clue-detail"></p>
+      <p class="prasna-note">Treat this as a symbolic clue. The chart can’t verify where the item is.</p>
+      <h3>Search checklist</h3>
+      <ul class="prasna-checklist" id="prasna-checklist"></ul>
+     </div>
+     <div class="chart-card prasna-chart-card">
+      <h3>Question chart</h3>
+      <p id="prasna-context" class="prasna-note"></p>
+      <div class="chart-wrap" id="prasna-chart"></div>
+      <p id="prasna-placement" class="house-detail"></p>
+      <details>
+       <summary>How the clue is calculated</summary>
+       <p class="prasna-note">This simplified Nashta Prasna reading uses the Moon as its starting point. The sign occupied by the ruler of the second sign from the Moon suggests the type of place to check. The method adapts the lost-property chapter of <a href="https://pdfcoffee.com/prasna-marga-ii-pdf-free.html" target="_blank" rel="noreferrer">Prasna Marga II, chapter 29</a>.</p>
+      </details>
+     </div>
+    </section>
+   </div>
+  </div>
+ </main>
+ <script src="vendor/astronomy.js"></script>
+ <script type="module" src="prasna-view.js"></script>
+</body>
+</html>
